@@ -18,18 +18,69 @@ model Sample {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  password  String
-  role      Role      @default(USER)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id             Int             @id @default(autoincrement())
+  deletedAt      DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  accountId      Int
+  account        Account         @relation(fields: [accountId], references: [id])
+  banners        Banner[]
+  user_addresses UserAddresses[]
 
   @@map("users")
+}
+
+model Account {
+  id          Int       @id @default(autoincrement())
+  fullName    String
+  email       String    @unique
+  password    String
+  role        Role      @default(USER)
+  profilePict String?
+  isVerified  Boolean   @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  users User[]
+
+  @@map("accounts")
 }
 
 enum Role {
   USER
   ADMIN
+  SUPER_ADMIN
+}
+
+model Banner {
+  id        Int       @id @default(autoincrement())
+  alt       String
+  source    String
+  linkTo    String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  @@map("banners")
+}
+
+model UserAddresses {
+  id          Int       @id @default(autoincrement())
+  fullAddress String
+  postalCode  String
+  latitude    Decimal   @db.Decimal(9, 6)
+  longitude   Decimal   @db.Decimal(9, 6)
+  isPrimary   Boolean
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  @@map("user_addresses")
 }

@@ -64,14 +64,9 @@ export class SampleService {
   createSample = async (body: CreateSampleDTO, image: Express.Multer.File) => {
     const { secure_url } = await this.fileService.upload(image);
 
-    this.mailService.sendEmail(
-      "danielreinhard1129@gmail.com",
-      "Hello",
-      "example",
-      {
-        name: "Daniel",
-      },
-    );
+    this.mailService.sendEmail("hfaruqw@gmail.com", "Hello", "example", {
+      name: "Daniel",
+    });
 
     return this.prisma.sample.create({
       data: body,
