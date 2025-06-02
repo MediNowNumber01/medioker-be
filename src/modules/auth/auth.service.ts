@@ -30,7 +30,7 @@ export class AuthService {
     });
 
     if (!exsistingAccount) {
-      throw new ApiError("account not found", 404);
+      throw new ApiError("User not found", 404);
     }
 
     const isPasswordValid = await this.passwordService.comparePassword(

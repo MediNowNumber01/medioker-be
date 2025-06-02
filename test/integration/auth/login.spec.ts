@@ -11,7 +11,7 @@ describe("POST /auth/login", () => {
     const [user] = mockUserData({ numberOfUsers: 1 });
     const { hashPassword } = new PasswordService();
     const hashedPassword = await hashPassword("Password123");
-    await prisma.user.create({
+    await prisma.account.create({
       data: { ...user, password: hashedPassword },
     });
 
@@ -27,8 +27,12 @@ describe("POST /auth/login", () => {
     const [user] = mockUserData({ numberOfUsers: 1 });
     const { hashPassword } = new PasswordService();
     const hashedPassword = await hashPassword("Password123");
-    await prisma.user.create({
-      data: { email: user.email, password: hashedPassword },
+    await prisma.account.create({
+      data: {
+        fullName: user.fullName,
+        email: user.email,
+        password: hashedPassword,
+      },
     });
 
     const response = await request(app)
@@ -47,6 +51,6 @@ describe("POST /auth/login", () => {
       .send({ email, password: "Password123" });
 
     expect(response.status).toBe(404);
-    expect(response.body).toHaveProperty("message", "User not found");
+    expect(response.body).toHaveProperty("message", "account not found");
   });
 });
