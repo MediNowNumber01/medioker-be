@@ -2,3 +2,5 @@ node_modules
 docker
 dist
 .env
+vscode/**
+vscode
