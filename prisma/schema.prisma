@@ -5,46 +5,41 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")
 }
 
-model Sample {
-  id        Int       @id @default(autoincrement())
-  name      String
+model Account {
+  id          String      @id @default(cuid())
+  fullName    String
+  email       String      @unique
+  password    String
+  role        Role        @default(USER)
+  profilePict String?
+  isVerified  Boolean     @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  User        User?
+  Admin       Admin?
+  SuperAdmin  SuperAdmin?
+
+  @@map("accounts")
+}
+
+model User {
+  id        String    @id @default(cuid())
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  @@map("samples")
-}
-
-model User {
-  id             Int             @id @default(autoincrement())
-  deletedAt      DateTime?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  accountId      Int
+  // Relations
+  accountId      String          @unique
   account        Account         @relation(fields: [accountId], references: [id])
-  banners        Banner[]
   user_addresses UserAddresses[]
+  Forum          Forum[]
+  Order          Order?
 
   @@map("users")
-}
-
-model Account {
-  id          Int       @id @default(autoincrement())
-  fullName    String
-  email       String    @unique
-  password    String
-  role        Role      @default(USER)
-  profilePict String?
-  isVerified  Boolean   @default(false)
-  deletedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  users User[]
-
-  @@map("accounts")
 }
 
 enum Role {
@@ -54,7 +49,7 @@ enum Role {
 }
 
 model Banner {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(cuid())
   alt       String
   source    String
   linkTo    String
@@ -62,25 +57,371 @@ model Banner {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  user   User @relation(fields: [userId], references: [id])
-  userId Int
-
   @@map("banners")
 }
 
 model UserAddresses {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @default(cuid())
   fullAddress String
   postalCode  String
-  latitude    Decimal   @db.Decimal(9, 6)
-  longitude   Decimal   @db.Decimal(9, 6)
+  latitude    String
+  longitude   String
   isPrimary   Boolean
   deletedAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   @@map("user_addresses")
+}
+
+model Admin {
+  id                 String    @id
+  createdAt          DateTime  @default(now())
+  updateAt           DateTime  @updatedAt
+  deleteAt           DateTime?
+  adminRole          AdminRole
+  validToAnswerForum Boolean   @default(false)
+
+  // Relations
+  accountId    String         @unique
+  account      Account        @relation(fields: [accountId], references: [id])
+  pharmacyId   String
+  pharmacy     Pharmacy       @relation(fields: [pharmacyId], references: [id])
+  ForumComment ForumComment[]
+}
+
+enum AdminRole {
+  DOCTOR
+  PHARMACIST
+  CASHIER
+}
+
+model SuperAdmin {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  accountId String  @unique
+  account   Account @relation(fields: [accountId], references: [id])
+
+  @@map("super_admins")
+}
+
+model Pharmacy {
+  id             String    @id @default(uuid())
+  name           String    @unique
+  description    String
+  slug           String    @unique
+  picture        String
+  isOpen         Boolean
+  createdAt      DateTime  @default(now())
+  detailLocation String
+  lat            String
+  lng            String
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+  isMain         Boolean   @default(false)
+
+  // Relations
+  Admin Admin[]
+  Order Order[]
+
+  @@map("pharmacies")
+}
+
+model Stock {
+  id        String    @id @default(cuid())
+  quantity  Float
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  productId    String
+  product      Product        @relation(fields: [productId], references: [id])
+  StockHistory StockHistory[]
+
+  @@map("stocks")
+}
+
+model StockHistory {
+  id             String @id @default(cuid())
+  quantityBefore Float
+  quantityAfter  Float
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  stockId String
+  stock   Stock  @relation(fields: [stockId], references: [id])
+
+  @@map("stock_histories")
+}
+
+enum TypeHistory {
+  TRANSACTION
+  ADJUSTMENT
+  RETURN
+}
+
+model Product {
+  id                String    @id @default(cuid())
+  name              String
+  slug              String    @unique
+  published         Boolean   @default(false)
+  nameMIMS          String
+  golongan          Golongan
+  catCreate         CatCreate
+  nomorEdar         String
+  price             Float
+  needsPrescription Boolean   @default(false)
+  description       String
+  composition       String
+  dose              String
+  sideEffects       String
+  indication        String
+  CreatedAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+  categoryId        String
+
+  // Relations
+  ProductImage    ProductImage[]
+  UnitProduct     UnitProduct[]
+  Stock           Stock[]
+  ProductCategory ProductCategory[]
+  OrderProduct    OrderProduct[]
+
+  @@map("products")
+}
+
+enum Golongan {
+  OBAT_UMUM
+  OBAT_KERAS
+  OBAT_BEBAS
+  OBAT_PRESKIPSI
+}
+
+enum CatCreate {
+  GENERIK
+  NON_GENERIK
+  HERBAL
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  description String
+  color       String
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  ProductCategory ProductCategory[]
+
+  @@map("categories")
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("product_images")
+}
+
+model UnitProduct {
+  id        String    @id @default(cuid())
+  name      String
+  isDefault Boolean   @default(false)
+  weight    Float
+  price     Float
+  ratio     Float
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  Product   Product @relation(fields: [productId], references: [id])
+  productId String
+
+  @@map("unit_products")
+}
+
+model ProductCategory {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  @@map("product_categories")
+}
+
+model Forum {
+  id        String    @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  userId       String
+  user         User           @relation(fields: [userId], references: [id])
+  ForumComment ForumComment[]
+
+  @@map("forums")
+}
+
+model ForumComment {
+  id        String    @id @default(cuid())
+  content   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  forumId String
+  forum   Forum  @relation(fields: [forumId], references: [id])
+  adminId String
+  admin   Admin  @relation(fields: [adminId], references: [id])
+
+  @@map("forum_comments")
+}
+
+model Order {
+  id            String     @id @default(cuid())
+  reciptUUID    String     @unique @default(uuid())
+  paymentMethod String?
+  paymentProof  String?
+  productPrice  String
+  deliveryPrice Float
+  totalPrice    Float
+  pickupCode    String?
+  note          String?
+  status        Status // enum type
+  orderType     OrederType // enum type
+  updateAt      DateTime   @updatedAt
+  createAt      DateTime   @default(now())
+  deletedAt     DateTime?
+
+  // Relations
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  apotekId      String
+  apotek        Pharmacy        @relation(fields: [apotekId], references: [id])
+  Prescrition   Prescrition[]
+  OrderProduct  OrderProduct[]
+  OrderActivity OrderActivity[]
+  Delivery      Delivery?
+
+  @@map("order")
+}
+
+enum Status {
+  WAITING_FOR_PAYMENT
+  PAYMENT_CONFIRMATION
+  RECIPT_CONFIRMATION
+  USER_CONFIRMATION
+  PROCESSING_ORDER
+  DELIVERY
+  COMPLETED
+  CANCELED
+  EXPIRED
+  WAITING_FOR_PICKUP
+  WAITING_FOR_REFUND
+}
+
+enum OrederType {
+  GENERAL
+  PRESCRIPTION
+}
+
+model Prescrition {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  source    String
+
+  // Relations
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  @@map("prescriptions")
+}
+
+model OrderProduct {
+  id                    String    @id @default(cuid())
+  quantity_base_default Float
+  product_unit_name     String
+  quantity_unit         Float
+  product_unit_weight   Float
+  product_ratio         Float
+  priceAtPurchase       Float
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  deletedAt             DateTime?
+
+  // Relations
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("order_products")
+}
+
+model OrderActivity {
+  id        String    @id @default(cuid())
+  status    Status
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  @@map("order_activities")
+}
+
+model Delivery {
+  id          String    @id @default(cuid())
+  name        String
+  fullAddress String
+  postalCode  String
+  latitude    String
+  longitude   String
+  expedition  String
+  deliveryFee Float
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  @@map("deliveries")
 }
