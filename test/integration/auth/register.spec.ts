@@ -2,6 +2,7 @@ import request from "supertest";
 import App from "../../../src/app";
 import prisma from "../../../src/prisma";
 import { mockUserData } from "../user/utils";
+process.env.JWT_SECRET_FORGOT_PASSWORD = "mock-secret-key";
 
 describe("POST /auth/register", () => {
   const { app } = new App();
@@ -21,7 +22,7 @@ describe("POST /auth/register", () => {
 
   it(`should return an error if the email already exists`, async () => {
     const [user] = mockUserData({ numberOfUsers: 1 });
-    await prisma.user.create({ data: user });
+    await prisma.account.create({ data: user });
 
     const response = await request(app)
       .post("/auth/register")
