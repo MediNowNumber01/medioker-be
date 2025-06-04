@@ -22,7 +22,7 @@ export class AuthController {
   register = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-      const profilePict = files.profilePict?.[0];
+      const profilePict = files.image?.[0];
       const body = req.body as RegisterDTO;
 
       const result = await this.authService.register(body, profilePict);

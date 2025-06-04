@@ -152,7 +152,7 @@ export class AuthService {
     return result;
   };
 
-  resetPassword = async (body: ResetPasswordDTO, authUserId: number) => {
+  resetPassword = async (body: ResetPasswordDTO, authUserId: string) => {
     console.log("HIT");
 
     const user = await this.prisma.account.findFirst({
