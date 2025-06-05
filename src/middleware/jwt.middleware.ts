@@ -4,7 +4,7 @@ import { ApiError } from "../utils/api-error";
 import { Role } from "@prisma/client";
 
 export interface JwtPayload {
-  id: number;
+  id: string;
   role: Role;
 }
 

@@ -18,15 +18,7 @@ export const fileFilter = async (
   try {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/avif",
-      "image/jpg",
-      "image/webp",
-      "image/heif",
-      "image/heic",
-    ];
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
 
     for (const fieldname in files) {
       const fileArray = files[fieldname];

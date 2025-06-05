@@ -78,7 +78,7 @@ model UserAddresses {
 }
 
 model Admin {
-  id                 String    @id
+  id                 String    @id @default(cuid())
   createdAt          DateTime  @default(now())
   updateAt           DateTime  @updatedAt
   deleteAt           DateTime?
@@ -88,8 +88,8 @@ model Admin {
   // Relations
   accountId    String         @unique
   account      Account        @relation(fields: [accountId], references: [id])
-  pharmacyId   String
-  pharmacy     Pharmacy       @relation(fields: [pharmacyId], references: [id])
+  pharmacyId   String?
+  pharmacy     Pharmacy?      @relation(fields: [pharmacyId], references: [id])
   ForumComment ForumComment[]
 }
 
@@ -173,10 +173,10 @@ enum TypeHistory {
 
 model Product {
   id                String    @id @default(cuid())
-  name              String
+  name              String    @unique
   slug              String    @unique
   published         Boolean   @default(false)
-  nameMIMS          String
+  nameMIMS          String    @unique
   golongan          Golongan
   catCreate         CatCreate
   nomorEdar         String
@@ -216,13 +216,12 @@ enum CatCreate {
 }
 
 model Category {
-  id          String    @id @default(cuid())
-  name        String
+  id          String   @id @default(cuid())
+  name        String   @unique
   description String
   color       String
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-  createdAt   DateTime  @default(now())
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
 
   // Relations
   ProductCategory ProductCategory[]
@@ -262,10 +261,9 @@ model UnitProduct {
 }
 
 model ProductCategory {
-  id        String    @id @default(cuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   productId  String
