@@ -2,7 +2,7 @@ import { plainToInstance } from "class-transformer";
 import { NextFunction, Request, Response } from "express";
 import { injectable } from "tsyringe";
 import { CategoryService } from "./category.service";
-import { CreateCategoryDTO } from "./dto/create-cateogory.dto";
+import { CreateCategoryDTO } from "./dto/create-category.dto";
 import { ApiError } from "../../utils/api-error";
 import { GetCategoriesDTO } from "./dto/get-categories.dto";
 

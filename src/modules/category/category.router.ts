@@ -5,7 +5,7 @@ import { CategoryController } from "./category.controller";
 import { env } from "../../config";
 import { verifyRole } from "../../middleware/role.middleware";
 import { validateBody } from "../../middleware/validation.middleware";
-import { CreateCategoryDTO } from "./dto/create-cateogory.dto";
+import { CreateCategoryDTO } from "./dto/create-category.dto";
 import { UpdateCategoryDTO } from "./dto/update-category.dto";
 import { GetCategoriesDTO } from "./dto/get-categories.dto";
 

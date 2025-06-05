@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { injectable } from "tsyringe";
 import { PaginationService } from "../pagination/pagination.service";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateCategoryDTO } from "./dto/create-cateogory.dto";
+import { CreateCategoryDTO } from "./dto/create-category.dto";
 import { UpdateCategoryDTO } from "./dto/update-category.dto";
 import { ApiError } from "../../utils/api-error";
 import { GetCategoriesDTO } from "./dto/get-categories.dto";
