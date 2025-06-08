@@ -4,7 +4,7 @@ import { JwtMiddleware } from "../../middleware/jwt.middleware";
 import { CategoryController } from "./category.controller";
 import { env } from "../../config";
 import { verifyRole } from "../../middleware/role.middleware";
-import { validateBody } from "../../middleware/validation.middleware";
+import { StrictValidateBody } from "../../middleware/validation.middleware";
 import { CreateCategoryDTO } from "./dto/create-category.dto";
 import { UpdateCategoryDTO } from "./dto/update-category.dto";
 import { GetCategoriesDTO } from "./dto/get-categories.dto";
@@ -25,20 +25,20 @@ export class CategoryRouter {
       "/",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
-      validateBody(CreateCategoryDTO),
+      StrictValidateBody(CreateCategoryDTO),
       this.categoryController.createCategory,
     );
     this.router.get("/:id", this.categoryController.getCategory);
     this.router.get(
       "/",
-      validateBody(GetCategoriesDTO),
+      StrictValidateBody(GetCategoriesDTO),
       this.categoryController.getCategories,
     );
     this.router.put(
       "/:id",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
-      validateBody(UpdateCategoryDTO),
+      StrictValidateBody(UpdateCategoryDTO),
       this.categoryController.updateCategory,
     );
     this.router.delete(

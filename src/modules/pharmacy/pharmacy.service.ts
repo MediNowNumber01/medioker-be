@@ -8,6 +8,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { CreatePharmacyDTO } from "./dto/create-pharmacy.dto";
 import { GetPharmaciesDTO } from "./dto/get-pharmacies.dto";
 import { UpdatePharmacyDTO } from "./dto/update-pharmacy.dto";
+import { assignAdminPharmacyDTO } from "./dto/assignAdminPharmacy.dto";
+import { VerifyNamePharmacyDTO } from "./dto/verify-name.dto";
 
 @injectable()
 export class PharmacyService {
@@ -17,8 +19,12 @@ export class PharmacyService {
     private readonly fileService: CloudinaryService,
   ) {}
 
-  private async validatePharmacyName(name: string, id?: string) {
-    const existingPharmacy = await this.prisma.pharmacy.findFirst({
+  private async validatePharmacyName(
+    tx: Prisma.TransactionClient,
+    name: string,
+    id?: string,
+  ) {
+    const existingPharmacy = await tx.pharmacy.findFirst({
       where: {
         name: {
           equals: name,
@@ -28,40 +34,50 @@ export class PharmacyService {
       },
     });
     if (existingPharmacy) {
-      throw new ApiError("Pharmacy with this name already exists", 400);
+      return false;
     }
+    return true;
   }
 
-  private async getPharmacyById(id: string) {
-    const pharmacy = await this.prisma.pharmacy.findUnique({
+  private async getPharmacyById(
+    tx: Prisma.TransactionClient,
+    id: string,
+    isSuperAdmin: boolean,
+  ) {
+    const pharmacy = await tx.pharmacy.findUnique({
       where: { id, deletedAt: null },
     });
     if (!pharmacy) {
       throw new ApiError("Pharmacy not found", 404);
     }
+    if (!isSuperAdmin && !pharmacy.isOpen) {
+      throw new ApiError("Pharmacy is closed", 403);
+    }
     return pharmacy;
   }
 
-  createPharmacy = async (
-    dto: CreatePharmacyDTO,
-    pictureFile?: Express.Multer.File,
+  public createPharmacy = async (
+    body: CreatePharmacyDTO,
+    pictureFile: Express.Multer.File,
   ) => {
-    await this.validatePharmacyName(dto.name);
-    const slug = generateSlug(dto.name);
-
-    let pictureUrl = dto.picture;
-    if (pictureFile) {
-      const { secure_url } = await this.fileService.upload(pictureFile);
-      pictureUrl = secure_url;
-    }
-
     return this.prisma.$transaction(async (tx) => {
+      const validName = await this.validatePharmacyName(tx, body.name);
+      if (!validName) {
+        throw new ApiError("Pharmacy name already exists", 400);
+      }
+      const slug = generateSlug(body.name);
+
+      let pictureUrl = "";
+      if (pictureFile) {
+        const { secure_url } = await this.fileService.upload(pictureFile);
+        pictureUrl = secure_url;
+      }
       const pharmacyCount = await tx.pharmacy.count({
         where: { deletedAt: null },
       });
       if (pharmacyCount === 0) {
-        dto.isMain = true;
-      } else if (dto.isMain) {
+        body.isMain = true;
+      } else if (body.isMain) {
         await tx.pharmacy.updateMany({
           where: { isMain: true },
           data: { isMain: false },
@@ -70,14 +86,15 @@ export class PharmacyService {
 
       const newPharmacy = await tx.pharmacy.create({
         data: {
-          ...dto,
+          ...body,
           slug,
+          isOpen: false,
           picture: pictureUrl,
         },
       });
 
       const allProducts = await tx.product.findMany({
-        where: { deletedAt: null },
+        where: { deletedAt: null, published: true },
         select: { id: true },
       });
 
@@ -98,17 +115,102 @@ export class PharmacyService {
     });
   };
 
-  getPharmacies = async (query: GetPharmaciesDTO) => {
+  public verifyPharmacyName = async (body: VerifyNamePharmacyDTO) => {
+    if (body.id) {
+      await this.getPharmacyById(this.prisma, body.id, true);
+    }
+    const data = await this.validatePharmacyName(
+      this.prisma,
+      body.name,
+      body.id,
+    );
+    return {
+      isValid: data,
+      message: data
+        ? "Pharmacy name is available"
+        : "Pharmacy name already exists",
+    };
+  };
+
+  public assignAdminPharmacy = async (body: assignAdminPharmacyDTO) => {
+    await this.prisma.$transaction(async (tx) => {
+      await this.getPharmacyById(tx, body.pharmacyId, true);
+      const admin = await tx.admin.findUnique({
+        where: { id: body.adminId },
+        select: { id: true },
+      });
+      if (!admin) {
+        throw new ApiError("Admin not found", 404);
+      }
+      await tx.admin.update({
+        where: { id: body.adminId },
+        data: { pharmacyId: body.pharmacyId },
+      });
+      await tx.pharmacy.update({
+        where: { id: body.pharmacyId },
+        data: { isOpen: true },
+      });
+    });
+    return {
+      message: "Pharmacy assigned to admin successfully",
+    };
+  };
+
+  public unassignAdminPharmacy = async (adminId: string) => {
+    await this.prisma.$transaction(async (tx) => {
+      const admin = await tx.admin.findUnique({
+        where: { id: adminId },
+        select: { pharmacyId: true },
+      });
+      if (!admin || !admin.pharmacyId) {
+        throw new ApiError(
+          "Admin not found or not assigned to a pharmacy",
+          404,
+        );
+      }
+      const pharmacyAdminNumber = await tx.admin.count({
+        where: { pharmacyId: admin.pharmacyId },
+      });
+      if (pharmacyAdminNumber <= 1) {
+        await tx.pharmacy.update({
+          where: { id: admin.pharmacyId },
+          data: { isOpen: false },
+        });
+      }
+      await tx.admin.update({
+        where: { id: adminId },
+        data: { pharmacyId: null },
+      });
+    });
+    return {
+      message: "Pharmacy unassigned from admin successfully",
+    };
+  };
+
+  public getAssignedAdmins = async (pharmacyId: string) => {
+    const pharmacy = await this.getPharmacyById(this.prisma, pharmacyId, true);
+    const admins = await this.prisma.admin.findMany({
+      where: { pharmacyId: pharmacy.id },
+      include: {
+        account: true,
+      },
+    });
+    return {
+      data: admins,
+      message: "Assigned admins fetched successfully",
+    };
+  };
+
+  public getPharmacies = async (query: GetPharmaciesDTO, isSuper: boolean) => {
     const { search, page, take, sortBy, sortOrder, all } = query;
     const where: Prisma.PharmacyWhereInput = {
       deletedAt: null,
     };
+    if (!isSuper) {
+      where.isOpen = true;
+    }
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-        { detailLocation: { contains: search, mode: "insensitive" } },
-      ];
+      where.name = { contains: search, mode: "insensitive" };
     }
     let paginationArgs: Prisma.PharmacyFindManyArgs = {};
     if (!all) {
@@ -134,32 +236,36 @@ export class PharmacyService {
     };
   };
 
-  getPharmacy = async (id: string) => {
-    const data = await this.getPharmacyById(id);
+  getPharmacy = async (id: string, isSuperAdmin: boolean) => {
+    const data = await this.getPharmacyById(this.prisma, id, isSuperAdmin);
     return {
       data,
       message: "Pharmacy fetched successfully",
     };
   };
 
-  updatePharmacy = async (
+  public updatePharmacy = async (
     id: string,
-    dto: UpdatePharmacyDTO,
+    body: UpdatePharmacyDTO,
     pictureFile?: Express.Multer.File,
   ) => {
     return this.prisma.$transaction(async (tx) => {
-      const existingPharmacy = await tx.pharmacy.findUnique({
-        where: { id, deletedAt: null },
-      });
-      if (!existingPharmacy) {
-        throw new ApiError("Pharmacy not found", 404);
+      const existingPharmacy = await this.getPharmacyById(tx, id, false);
+      if (!body.isMain && existingPharmacy.isMain) {
+        throw new ApiError(
+          "Cannot demote the main pharmacy directly. Please set another pharmacy as main.",
+          400,
+        );
       }
 
-      if (dto.name) {
-        await this.validatePharmacyName(dto.name, id);
+      if (body.name) {
+        const validName = await this.validatePharmacyName(tx, body.name, id);
+        if (!validName) {
+          throw new ApiError("Pharmacy name already exists", 400);
+        }
       }
 
-      let pictureUrl = dto.picture;
+      let pictureUrl = existingPharmacy.picture;
       if (pictureFile) {
         if (existingPharmacy.picture) {
           await this.fileService.remove(existingPharmacy.picture);
@@ -168,20 +274,23 @@ export class PharmacyService {
         pictureUrl = secure_url;
       }
 
-      if (dto.isMain === true) {
+      if (body.isMain === true) {
         await tx.pharmacy.updateMany({
           where: { isMain: true, NOT: { id } },
           data: { isMain: false },
         });
-      } else if (dto.isMain === false && existingPharmacy.isMain) {
-        throw new ApiError("Cannot demote the main pharmacy directly. Please set another pharmacy as main.", 400);
+      } else if (body.isMain === false && existingPharmacy.isMain) {
+        throw new ApiError(
+          "Cannot demote the main pharmacy directly. Please set another pharmacy as main.",
+          400,
+        );
       }
 
       const updatedPharmacy = await tx.pharmacy.update({
         where: { id },
         data: {
-          ...dto,
-          slug: dto.name ? generateSlug(dto.name) : undefined,
+          ...body,
+          slug: body.name ? generateSlug(body.name) : undefined,
           picture: pictureUrl,
         },
       });
@@ -193,20 +302,59 @@ export class PharmacyService {
     });
   };
 
-  deletePharmacy = async (id: string) => {
-    const pharmacy = await this.getPharmacyById(id);
-    if (pharmacy.isMain) {
-      throw new ApiError("Cannot delete the main pharmacy", 400);
-    }
-    
+  public deletePharmacy = async (id: string) => {
     return this.prisma.$transaction(async (tx) => {
-      await tx.pharmacy.update({
-        where: { id },
-        data: { deletedAt: new Date() },
+      const pharmacy = await this.getPharmacyById(tx, id, true);
+      if (pharmacy.isMain) {
+        throw new ApiError("Cannot delete the main pharmacy", 400);
+      }
+      const excitingOrder = await tx.order.findMany({
+        where: { OrderStock: { some: { stock: { pharmacyId: id } } } },
+        select: { id: true },
       });
-      await tx.stock.updateMany({
+      if (excitingOrder.length === 0) {
+        await this.fileService.remove(pharmacy.picture);
+        await tx.stock.deleteMany({
+          where: { pharmacyId: id },
+        });
+        await tx.pharmacy.delete({
+          where: { id },
+        });
+      } else {
+        await tx.pharmacy.update({
+          where: { id },
+          data: { deletedAt: new Date() },
+        });
+        await tx.stock.updateMany({
+          where: { pharmacyId: id },
+          data: { deletedAt: new Date() },
+        });
+      }
+      await tx.cart.deleteMany({
+        where: { stock: { pharmacyId: id } },
+      });
+
+      if (excitingOrder.length > 0) {
+        await tx.orderActivity.createMany({
+          data: excitingOrder.map((order) => ({
+            orderId: order.id,
+            status: "CANCELED",
+          })),
+        });
+        await tx.order.updateMany({
+          where: { OrderStock: { some: { stock: { pharmacyId: id } } } },
+          data: {
+            status: "CANCELED",
+          },
+        });
+        await tx.orderStock.updateMany({
+          where: { stock: { pharmacyId: id } },
+          data: { deletedAt: new Date() },
+        });
+      }
+      await tx.admin.updateMany({
         where: { pharmacyId: id },
-        data: { deletedAt: new Date() },
+        data: { pharmacyId: null },
       });
       return { message: "Pharmacy deleted successfully" };
     });

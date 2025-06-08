@@ -4,7 +4,7 @@ import { JwtMiddleware } from "../../middleware/jwt.middleware";
 import { ProductController } from "./product.controller";
 import { env } from "../../config";
 import { verifyRole } from "../../middleware/role.middleware";
-import { validateBody } from "../../middleware/validation.middleware";
+import { StrictValidateBody } from "../../middleware/validation.middleware";
 import { CreateProductInfoDTO } from "./dto/create-product-info.dto";
 import { verifyExistingNameDTO } from "./dto/verify-name-dto";
 import { UpdateProductInfoDTO } from "./dto/update-product-info.dto";
@@ -34,23 +34,31 @@ export class ProductRouter {
       "/productsinfo",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
-      validateBody(CreateProductInfoDTO),
+      StrictValidateBody(CreateProductInfoDTO),
       this.productController.createProductInfo,
+    );
+    this.router.post(
+      "/verify-name",
+      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
+      verifyRole(["SUPER_ADMIN"]),
+      StrictValidateBody(verifyExistingNameDTO),
+      this.productController.verifyExistingName,
     );
     this.router.post(
       "/image/:id",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
       uploader().fields([{ name: "image", maxCount: 1 }]),
-      validateBody(ProductImageDTO),
+      StrictValidateBody(ProductImageDTO),
       fileFilter,
       this.productController.uploadProductImage,
     );
+
     this.router.post(
       "/unit/:id",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
-      validateBody(CreateUnitProductDTO),
+      StrictValidateBody(CreateUnitProductDTO),
       this.productController.createUnitProduct,
     );
     // ================read================
@@ -71,13 +79,7 @@ export class ProductRouter {
       verifyRole(["SUPER_ADMIN"]),
       this.productController.getAdminProduct,
     );
-    this.router.get(
-      "/verify-name",
-      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      verifyRole(["SUPER_ADMIN"]),
-      validateBody(verifyExistingNameDTO),
-      this.productController.verifyExistingName,
-    );
+
     this.router.get("/:slug", this.productController.getProductDetails);
     // ================update================
     this.router.patch(
@@ -96,7 +98,7 @@ export class ProductRouter {
       "/productsinfo/:id",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
-      validateBody(UpdateProductInfoDTO),
+      StrictValidateBody(UpdateProductInfoDTO),
       this.productController.updateProductInfo,
     );
     // ================delete================

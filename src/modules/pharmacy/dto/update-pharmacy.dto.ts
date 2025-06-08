@@ -1,12 +1,13 @@
 import { Transform } from "class-transformer";
 import {
   IsBoolean,
-  IsLatitude,
-  IsLongitude,
   IsOptional,
   IsString,
   MinLength,
+  Validate
 } from "class-validator";
+import { MinWordsHTMLConstraint } from "../../../utils/min-html-words-constraint";
+import { ValidLocationConstraint } from "../../../utils/validLocations";
 
 export class UpdatePharmacyDTO {
   @IsOptional()
@@ -17,16 +18,8 @@ export class UpdatePharmacyDTO {
 
   @IsOptional()
   @IsString()
-  @MinLength(10)
+  @Validate(MinWordsHTMLConstraint, [3])
   description?: string;
-
-  @IsOptional()
-  @IsString()
-  picture?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isOpen?: boolean;
 
   @IsOptional()
   @IsString()
@@ -34,14 +27,15 @@ export class UpdatePharmacyDTO {
   detailLocation?: string;
 
   @IsOptional()
-  @IsLatitude()
+  @Validate(ValidLocationConstraint)
   lat?: string;
 
   @IsOptional()
-  @IsLongitude()
+  @Validate(ValidLocationConstraint)
   lng?: string;
 
   @IsOptional()
+  @Transform(({ value }) => value === "true" || value === true)
   @IsBoolean()
   isMain?: boolean;
 }

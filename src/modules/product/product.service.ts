@@ -67,6 +67,12 @@ export class ProductService {
   }
 
   private async validateCategory(tx: Prisma.TransactionClient, id: string[]) {
+    if (id.length === 0) {
+      throw new ApiError("At least one category is required", 400);
+    }
+    if (id.length > 5) {
+      throw new ApiError("A product can have a maximum of 5 categories", 400);
+    }
     const existingCategories = await tx.category.findMany({
       where: {
         id: { in: id },
@@ -238,6 +244,33 @@ export class ProductService {
           where: { id },
           data: { deletedAt: new Date() },
         });
+        const excitingOrder = await tx.order.findMany({
+          where: {
+            OrderStock: { some: { stock: { productId: id } } },
+            status: { not: "COMPLETED" },
+          },
+        });
+        if (excitingOrder.length > 0) {
+          await tx.orderActivity.createMany({
+            data: excitingOrder.map((order) => ({
+              orderId: order.id,
+              status: "CANCELED",
+            })),
+          });
+          await tx.order.updateMany({
+            where: {
+              OrderStock: { some: { stock: { productId: id } } },
+              status: { not: "COMPLETED" },
+            },
+            data: {
+              status: "CANCELED",
+            },
+          });
+          await tx.orderStock.updateMany({
+            where: { stock: { productId: id } },
+            data: { deletedAt: new Date() },
+          });
+        }
         await tx.stock.updateMany({
           where: { productId: id },
           data: { deletedAt: new Date() },
@@ -274,10 +307,10 @@ export class ProductService {
           },
         };
       }
-
-      if (pharmacyId) {
+      let selectedPharmacy = pharmacyId;
+      if (selectedPharmacy) {
         const existingPharmacy = await tx.pharmacy.findUnique({
-          where: { id: pharmacyId },
+          where: { id: pharmacyId, isOpen: true, deletedAt: null },
         });
         if (!existingPharmacy) {
           throw new ApiError("Pharmacy not found", 404);
@@ -289,15 +322,31 @@ export class ProductService {
         };
       } else {
         const mainPharmacy = await tx.pharmacy.findFirst({
-          where: { isMain: true },
+          where: { isMain: true, isOpen: true, deletedAt: null },
           select: { id: true },
         });
         if (mainPharmacy) {
+          selectedPharmacy = mainPharmacy.id;
           where.Stock = {
             some: {
               pharmacyId: mainPharmacy.id,
             },
           };
+        } else {
+          const excitingOpenPharmacy = await tx.pharmacy.findFirst({
+            where: { isOpen: true, deletedAt: null },
+            select: { id: true },
+          });
+          if (excitingOpenPharmacy) {
+            selectedPharmacy = excitingOpenPharmacy.id;
+            where.Stock = {
+              some: {
+                pharmacyId: excitingOpenPharmacy.id,
+              },
+            };
+          } else {
+            throw new ApiError("No open pharmacies found", 404);
+          }
         }
       }
 
@@ -322,6 +371,7 @@ export class ProductService {
             take: 1,
           },
           Stock: {
+            where: { pharmacyId: selectedPharmacy },
             select: {
               quantity: true,
             },
@@ -508,19 +558,6 @@ export class ProductService {
             },
           },
         },
-        Stock: {
-          where: { deletedAt: null },
-          select: {
-            id: true,
-            quantity: true,
-            pharmacy: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
       },
     });
     if (!data) {
@@ -573,12 +610,12 @@ export class ProductService {
     };
   };
 
-  public verifyExistingName = async (
-    body: verifyExistingNameDTO,
-    id?: string,
-  ) => {
+  public verifyExistingName = async (body: verifyExistingNameDTO) => {
     const result = await this.prisma.$transaction(async (tx) => {
-      const data = await this.validateProductName(tx, body.name, id);
+      if (body.id) {
+        await this.validateProductId(tx, body.id);
+      }
+      const data = await this.validateProductName(tx, body.name, body.id);
       return data;
     });
     return {
@@ -588,7 +625,6 @@ export class ProductService {
   };
 
   public updateProductInfo = async (id: string, body: UpdateProductInfoDTO) => {
-    console.log("updateProductInfo body", body);
     const result = await this.prisma.$transaction(async (tx) => {
       const existingProduct = await this.validateProductId(tx, id);
       if (existingProduct.deletedAt) {
@@ -807,8 +843,6 @@ export class ProductService {
           id,
         );
       }
-      console.log("to update");
-
       const data = await tx.unitProduct.update({
         where: { id: id },
         data: { ...body },

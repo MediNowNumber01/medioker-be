@@ -1,47 +1,43 @@
 import { Transform } from "class-transformer";
 import {
   IsBoolean,
-  IsLatitude,
-  IsLongitude,
   IsNotEmpty,
   IsString,
   MinLength,
+  Validate
 } from "class-validator";
+import { MinWordsHTMLConstraint } from "../../../utils/min-html-words-constraint";
+import { ValidLocationConstraint } from "../../../utils/validLocations";
 
 export class CreatePharmacyDTO {
-  @IsString()
   @IsNotEmpty()
+  @IsString()
   @Transform(({ value }) => value.trim())
   @MinLength(3)
   name!: string;
 
-  @IsString()
   @IsNotEmpty()
-  @MinLength(10)
+  @IsString()
+  @Validate(MinWordsHTMLConstraint, [3])
   description!: string;
 
+  @IsNotEmpty()
   @IsString()
-  @IsNotEmpty()
-  picture!: string;
-
-  @IsBoolean()
-  @IsNotEmpty()
-  isOpen!: boolean;
-
-  @IsString()
-  @IsNotEmpty()
   @MinLength(10)
   detailLocation!: string;
 
-  @IsLatitude()
   @IsNotEmpty()
+  @IsString()
+  @Validate(ValidLocationConstraint)
   lat!: string;
-
-  @IsLongitude()
+  
   @IsNotEmpty()
+  @IsString()
+  @Validate(ValidLocationConstraint)
   lng!: string;
 
-  @IsBoolean()
   @IsNotEmpty()
+  @Transform(({ value }) => value === "true" || value === true)
+  @IsBoolean()
   isMain!: boolean;
 }

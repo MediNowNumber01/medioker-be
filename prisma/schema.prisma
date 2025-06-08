@@ -114,7 +114,7 @@ model SuperAdmin {
 }
 
 model Pharmacy {
-  id             String    @id @default(uuid())
+  id             String    @id @default(cuid())
   name           String    @unique
   description    String
   slug           String    @unique
