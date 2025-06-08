@@ -7,6 +7,7 @@ import { env } from "./config";
 import { errorMiddleware } from "./middleware/error.middleware";
 import { AuthRouter } from "./modules/auth/auth.router";
 import { CategoryRouter } from "./modules/category/category.router";
+import { ProductRouter } from "./modules/product/product.router";
 
 export default class App {
   public app;
@@ -27,11 +28,13 @@ export default class App {
   private routes(): void {
     const authRouter = container.resolve(AuthRouter);
     const categoryRouter = container.resolve(CategoryRouter);
+    const productRouter = container.resolve(ProductRouter);
     this.app.get("/", (_, res) => {
       res.send("Welcome");
     });
     this.app.use("/auth", authRouter.getRouter());
     this.app.use("/categories", categoryRouter.getRouter());
+    this.app.use("/products", productRouter.getRouter());
   }
 
   private handleError(): void {

@@ -15,6 +15,8 @@ export function validateBody(dtoClass: any) {
 
       res.status(400).send({ message });
       return;
+    } else {
+      req.body = dtoInstance;
     }
 
     next();

@@ -38,6 +38,7 @@ model User {
   user_addresses UserAddresses[]
   Forum          Forum[]
   Order          Order?
+  Cart           Cart[]
 
   @@map("users")
 }
@@ -130,6 +131,7 @@ model Pharmacy {
   // Relations
   Admin Admin[]
   Order Order[]
+  Stock Stock[]
 
   @@map("pharmacies")
 }
@@ -144,7 +146,11 @@ model Stock {
   // Relations
   productId    String
   product      Product        @relation(fields: [productId], references: [id])
+  pharmacyId   String
+  pharmacy     Pharmacy       @relation(fields: [pharmacyId], references: [id])
   StockHistory StockHistory[]
+  Cart         Cart[]
+  OrderStock   OrderStock[]
 
   @@map("stocks")
 }
@@ -176,11 +182,10 @@ model Product {
   name              String    @unique
   slug              String    @unique
   published         Boolean   @default(false)
-  nameMIMS          String    @unique
+  nameMIMS          String
   golongan          Golongan
   catCreate         CatCreate
   nomorEdar         String
-  price             Float
   needsPrescription Boolean   @default(false)
   description       String
   composition       String
@@ -190,14 +195,12 @@ model Product {
   CreatedAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   deletedAt         DateTime?
-  categoryId        String
 
   // Relations
   ProductImage    ProductImage[]
   UnitProduct     UnitProduct[]
-  Stock           Stock[]
   ProductCategory ProductCategory[]
-  OrderProduct    OrderProduct[]
+  Stock           Stock[]
 
   @@map("products")
 }
@@ -230,10 +233,11 @@ model Category {
 }
 
 model ProductImage {
-  id        String   @id @default(cuid())
-  imageUrl  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  imageUrl    String
+  isThumbnail Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
   productId String
@@ -243,19 +247,19 @@ model ProductImage {
 }
 
 model UnitProduct {
-  id        String    @id @default(cuid())
-  name      String
-  isDefault Boolean   @default(false)
-  weight    Float
-  price     Float
-  ratio     Float
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  id          String   @id @default(cuid())
+  name        String
+  isMain      Boolean  @default(false)
+  weight      Float
+  price       Float
+  ratioToMain Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
   Product   Product @relation(fields: [productId], references: [id])
   productId String
+  Cart      Cart[]
 
   @@map("unit_products")
 }
@@ -326,12 +330,12 @@ model Order {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
 
-  apotekId      String
-  apotek        Pharmacy        @relation(fields: [apotekId], references: [id])
-  Prescrition   Prescrition[]
-  OrderProduct  OrderProduct[]
+  pharmacyId    String
+  pharmacy      Pharmacy        @relation(fields: [pharmacyId], references: [id])
+  Prescription  Prescription[]
   OrderActivity OrderActivity[]
   Delivery      Delivery?
+  OrderStock    OrderStock[]
 
   @@map("order")
 }
@@ -355,7 +359,7 @@ enum OrederType {
   PRESCRIPTION
 }
 
-model Prescrition {
+model Prescription {
   id        String    @id @default(cuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -369,7 +373,7 @@ model Prescrition {
   @@map("prescriptions")
 }
 
-model OrderProduct {
+model OrderStock {
   id                    String    @id @default(cuid())
   quantity_base_default Float
   product_unit_name     String
@@ -382,10 +386,10 @@ model OrderProduct {
   deletedAt             DateTime?
 
   // Relations
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+  stockId String
+  stock   Stock  @relation(fields: [stockId], references: [id])
 
   @@map("order_products")
 }
@@ -422,4 +426,21 @@ model Delivery {
   order   Order  @relation(fields: [orderId], references: [id])
 
   @@map("deliveries")
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  quantity  Float
+
+  // Relations
+  userId  String
+  user    User        @relation(fields: [userId], references: [id])
+  stockId String
+  stock   Stock       @relation(fields: [stockId], references: [id])
+  unitId  String
+  unit    UnitProduct @relation(fields: [unitId], references: [id])
+
+  @@map("carts")
 }
