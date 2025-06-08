@@ -40,7 +40,6 @@ export class CategoryController {
     try {
       const body = req.body as CreateCategoryDTO;
       const id = req.params.id;
-      console.log("Update Category ID:", id);
       const result = await this.categoryService.updateCategory(id, body);
       res.status(200).send(result);
     } catch (error) {

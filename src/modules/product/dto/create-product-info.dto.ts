@@ -85,10 +85,6 @@ export class CreateProductInfoDTO {
   @Validate(MinWordsConstraint, [3])
   indication!: string;
 
-  @IsNumber()
-  @IsNotEmpty()
-  price!: number;
-
   @IsNotEmpty()
   @IsString({ each: true })
   productCategory!: string[];

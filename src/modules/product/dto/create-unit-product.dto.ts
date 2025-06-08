@@ -6,12 +6,13 @@ import {
   IsPositive,
   IsString,
   MinLength,
+  Validate,
 } from "class-validator";
 
 export class CreateUnitProductDTO {
   @IsString()
-  @IsNotEmpty()
   @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
   @MinLength(3)
   name!: string;
 
@@ -21,16 +22,22 @@ export class CreateUnitProductDTO {
 
   @IsNumber()
   @IsNotEmpty()
-  @IsPositive()
+  @Validate((value: number) => 0 < value, {
+    message: "weight must be greater than zero",
+  })
   readonly weight!: number;
 
   @IsNumber()
   @IsNotEmpty()
-  @IsPositive()
+  @Validate((value: number) => 0 <= value, {
+    message: "price must be greater than equal zero",
+  })
   readonly price!: number;
 
   @IsNumber()
   @IsNotEmpty()
-  @IsPositive()
-  readonly ratioToMain!: number;
+  @Validate((value: number) => 0 < value, {
+    message: "ratioToMain must be greater than zero",
+  })
+  ratioToMain!: number;
 }

@@ -57,6 +57,7 @@ export class ProductController {
     next: NextFunction,
   ) => {
     try {
+      let userId = req.user?.id;
       const query = plainToInstance(GetProductsDTO, req.query);
       const result = await this.productService.getProducts(query);
       res.status(200).send(result);
@@ -81,6 +82,35 @@ export class ProductController {
       next(error);
     }
   };
+
+  public getAdminProduct = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      let userId = req.user?.id;
+      const query = plainToInstance(GetProductsDTO, req.query);
+      const result = await this.productService.getAdminProducts(query);
+      res.status(200).send(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getDashboardProducts = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const result = await this.productService.getDashboardProducts();
+      res.status(200).send(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   // product info methods
   public createProductInfo = async (
     req: Request,
@@ -141,10 +171,10 @@ export class ProductController {
       if (!productImage) {
         throw new ApiError("Product image is required", 400);
       }
-      const body = req.body as ProductImageDTO;
       if (!productId) {
         throw new ApiError("Product ID is required", 400);
       }
+      const body = req.body as ProductImageDTO;
       const result = await this.productService.uploadProductImage(
         productId,
         productImage,

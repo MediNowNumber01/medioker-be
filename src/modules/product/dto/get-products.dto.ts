@@ -7,11 +7,17 @@ export class GetProductsDTO extends PaginationQueryParams {
   @Transform(({ value }) => value.trim())
   @IsString()
   search?: string;
-
+  
   @IsOptional()
-  @Transform(({ value }) =>
-    Array.isArray(value) ? value.map((v: string) => v.trim()) : [value.trim()],
-  )
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) {
+      return value.map((v: string) => v?.trim()).filter(Boolean);
+    }
+    if (typeof value === "string") {
+      return value.split(",").map((v) => v.trim()).filter(Boolean);
+    }
+    return [];
+  })
   @IsString({ each: true })
   categoryId?: string[];
 

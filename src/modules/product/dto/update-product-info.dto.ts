@@ -87,10 +87,6 @@ export class UpdateProductInfoDTO {
   indication?: string;
 
   @IsOptional()
-  @IsNumber()
-  price?: number;
-
-  @IsOptional()
   @IsString({ each: true })
   productCategory?: string[];
 }

@@ -41,7 +41,6 @@ export class AuthRouter {
       validateBody(forgotPasswordDTO),
       this.authController.forgotPassword,
     );
-    console.log("HITT");
 
     this.router.patch(
       "/reset-password",

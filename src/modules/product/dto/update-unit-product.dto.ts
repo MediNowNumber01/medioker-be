@@ -7,12 +7,13 @@ import {
   IsString,
   MinLength,
   IsOptional,
+  Validate,
 } from "class-validator";
 
 export class UpdateUnitProductDTO {
   @IsOptional()
-  @IsString()
   @Transform(({ value }) => value?.trim())
+  @IsString()
   @MinLength(3)
   name?: string;
 
@@ -22,16 +23,22 @@ export class UpdateUnitProductDTO {
 
   @IsOptional()
   @IsNumber()
-  @IsPositive()
+  @Validate((value: number) => 0 < value, {
+    message: "weight must be greater than zero",
+  })
   readonly weight?: number;
 
   @IsOptional()
   @IsNumber()
-  @IsPositive()
+  @Validate((value: number) => 0 <= value, {
+    message: "price must be greater than equal zero",
+  })
   readonly price?: number;
 
   @IsOptional()
   @IsNumber()
-  @IsPositive()
-  readonly ratioToMain?: number;
+  @Validate((value: number) => 0 < value, {
+    message: "ratioToMain must be greater than zero",
+  })
+  ratioToMain?: number;
 }
