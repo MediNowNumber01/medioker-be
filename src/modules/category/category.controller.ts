@@ -9,7 +9,7 @@ import { GetCategoriesDTO } from "./dto/get-categories.dto";
 @injectable()
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
-  createCategory = async (req: Request, res: Response, next: NextFunction) => {
+  public createCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const body = req.body as CreateCategoryDTO;
       const result = await this.categoryService.createCategory(body);
@@ -18,7 +18,7 @@ export class CategoryController {
       next(error);
     }
   };
-  getCategory = async (req: Request, res: Response, next: NextFunction) => {
+  public getCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id;
       const result = await this.categoryService.getCategory(id);
@@ -27,7 +27,7 @@ export class CategoryController {
       next(error);
     }
   };
-  getCategories = async (req: Request, res: Response, next: NextFunction) => {
+  public getCategories = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = plainToInstance(GetCategoriesDTO, req.query);
       const result = await this.categoryService.getCategories(query);
@@ -36,7 +36,7 @@ export class CategoryController {
       next(error);
     }
   };
-  updateCategory = async (req: Request, res: Response, next: NextFunction) => {
+  public updateCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const body = req.body as CreateCategoryDTO;
       const id = req.params.id;
@@ -46,7 +46,7 @@ export class CategoryController {
       next(error);
     }
   };
-  deleteCategory = async (req: Request, res: Response, next: NextFunction) => {
+  public deleteCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id;
       if (!id) {

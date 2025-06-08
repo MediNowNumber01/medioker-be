@@ -47,7 +47,7 @@ export class CategoryService {
     };
   };
 
-  createCategory = async (dto: CreateCategoryDTO) => {
+  public createCategory = async (dto: CreateCategoryDTO) => {
     const { name, description, color } = dto;
     await this.ValidateCategoryName(name);
     const data = await this.prisma.category.create({
@@ -63,11 +63,11 @@ export class CategoryService {
     };
   };
 
-  getCategory = async (id: string) => {
+  public getCategory = async (id: string) => {
     return this.getCategoryById(id);
   };
 
-  getCategories = async (body: GetCategoriesDTO) => {
+  public getCategories = async (body: GetCategoriesDTO) => {
     const { search, page, take, sortBy, sortOrder, all } = body;
     const whereClause: Prisma.CategoryWhereInput = {};
     if (search) {
@@ -110,7 +110,7 @@ export class CategoryService {
     };
   };
 
-  updateCategory = async (id: string, body: UpdateCategoryDTO) => {
+  public updateCategory = async (id: string, body: UpdateCategoryDTO) => {
     const existingCategory = await this.getCategoryById(id);
     if (!existingCategory.data) {
       throw new ApiError("Category not found", 404);
@@ -128,7 +128,7 @@ export class CategoryService {
     };
   };
 
-  deleteCategory = async (id: string) => {
+  public deleteCategory = async (id: string) => {
     const existingCategory = await this.getCategoryById(id);
     if (!existingCategory.data) {
       throw new ApiError("Category not found", 404);
