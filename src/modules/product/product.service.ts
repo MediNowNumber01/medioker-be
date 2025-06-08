@@ -479,10 +479,22 @@ export class ProductService {
 
   public getProductDetails = async (slug: string) => {
     const data = await this.prisma.product.findUnique({
-      where: { slug },
+      where: { slug, deletedAt: null, published: true },
       include: {
-        ProductImage: true,
+        ProductImage: {
+          omit: {
+            createdAt: true,
+            updatedAt: true,
+            productId: true,
+          },
+          orderBy: { isThumbnail: "desc" },
+        },
         UnitProduct: {
+          omit: {
+            createdAt: true,
+            updatedAt: true,
+            productId: true,
+          },
           orderBy: { isMain: "desc" },
         },
         ProductCategory: {
@@ -491,11 +503,13 @@ export class ProductService {
               select: {
                 id: true,
                 name: true,
+                color: true,
               },
             },
           },
         },
         Stock: {
+          where: { deletedAt: null },
           select: {
             id: true,
             quantity: true,
