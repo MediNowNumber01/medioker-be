@@ -31,27 +31,4 @@ export class JwtMiddleware {
       });
     };
   };
-
-  verifyTokenWithoutThrow = (secretKey: string) => {
-    return (req: Request, _res: Response, next: NextFunction) => {
-      const token = req.headers.authorization?.split(" ")[1];
-      if (!token) {
-        next();
-        return;
-      }
-
-      jwt.verify(token, secretKey, (err, payload) => {
-        if (err) {
-          if (err instanceof TokenExpiredError) {
-            throw new ApiError("Token expired", 403);
-          } else {
-            throw new ApiError("Invalid token", 403);
-          }
-        }
-
-        req.user = payload as JwtPayload;
-        next();
-      });
-    };
-  };
 }

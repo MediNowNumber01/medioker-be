@@ -150,6 +150,7 @@ model Stock {
   pharmacy     Pharmacy       @relation(fields: [pharmacyId], references: [id])
   StockHistory StockHistory[]
   Cart         Cart[]
+  OrderStock   OrderStock[]
 
   @@map("stocks")
 }
@@ -198,9 +199,8 @@ model Product {
   // Relations
   ProductImage    ProductImage[]
   UnitProduct     UnitProduct[]
-  Stock           Stock[]
   ProductCategory ProductCategory[]
-  OrderStock      OrderStock[]
+  Stock           Stock[]
 
   @@map("products")
 }
@@ -332,7 +332,7 @@ model Order {
 
   pharmacyId    String
   pharmacy      Pharmacy        @relation(fields: [pharmacyId], references: [id])
-  Prescrition   Prescrition[]
+  Prescription  Prescription[]
   OrderActivity OrderActivity[]
   Delivery      Delivery?
   OrderStock    OrderStock[]
@@ -359,7 +359,7 @@ enum OrederType {
   PRESCRIPTION
 }
 
-model Prescrition {
+model Prescription {
   id        String    @id @default(cuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -386,10 +386,10 @@ model OrderStock {
   deletedAt             DateTime?
 
   // Relations
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+  stockId String
+  stock   Stock  @relation(fields: [stockId], references: [id])
 
   @@map("order_products")
 }
