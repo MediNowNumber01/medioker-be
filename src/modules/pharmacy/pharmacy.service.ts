@@ -135,22 +135,55 @@ export class PharmacyService {
   public assignAdminPharmacy = async (body: assignAdminPharmacyDTO) => {
     await this.prisma.$transaction(async (tx) => {
       await this.getPharmacyById(tx, body.pharmacyId, true);
-      const admin = await tx.admin.findUnique({
-        where: { id: body.adminId },
-        select: { id: true },
-      });
-      if (!admin) {
-        throw new ApiError("Admin not found", 404);
+      if (body.adminId.length === 0) {
+        throw new ApiError("At least one admin must be assigned", 400);
       }
-      await tx.admin.update({
-        where: { id: body.adminId },
+      let PotadminsPharmacy: string[] = [];
+      const ExistingAdmins = await tx.admin.findMany({
+        where: { id: { in: body.adminId }, deleteAt: null },
+        select: { id: true, pharmacyId: true },
+      });
+      if (ExistingAdmins.length !== body.adminId.length) {
+        throw new ApiError("One or more admins not found", 404);
+      }
+      ExistingAdmins.forEach((admin) => {
+        if (
+          admin.pharmacyId !== null &&
+          admin.pharmacyId !== body.pharmacyId &&
+          !PotadminsPharmacy.includes(admin.id)
+        ) {
+          PotadminsPharmacy.push(admin.id);
+        }
+      });
+
+      await tx.admin.updateMany({
+        where: { id: { in: body.adminId } },
         data: { pharmacyId: body.pharmacyId },
       });
       await tx.pharmacy.update({
         where: { id: body.pharmacyId },
         data: { isOpen: true },
       });
+      if (PotadminsPharmacy.length > 0) {
+        const assignedPotAdmin = await tx.pharmacy.findMany({
+          where: { id: { in: PotadminsPharmacy } },
+          include: {
+            Admin: true,
+          },
+        });
+        await Promise.all(
+          assignedPotAdmin.map(async (pharmacy) => {
+            if (pharmacy.Admin.length < 1) {
+              await tx.pharmacy.update({
+                where: { id: pharmacy.id },
+                data: { isOpen: false },
+              });
+            }
+          }),
+        );
+      }
     });
+
     return {
       message: "Pharmacy assigned to admin successfully",
     };
