@@ -380,10 +380,6 @@ export class PharmacyService {
             status: "CANCELED",
           },
         });
-        await tx.orderStock.updateMany({
-          where: { stock: { pharmacyId: id } },
-          data: { deletedAt: new Date() },
-        });
       }
       await tx.admin.updateMany({
         where: { pharmacyId: id },

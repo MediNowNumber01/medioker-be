@@ -266,10 +266,6 @@ export class ProductService {
               status: "CANCELED",
             },
           });
-          await tx.orderStock.updateMany({
-            where: { stock: { productId: id } },
-            data: { deletedAt: new Date() },
-          });
         }
         await tx.stock.updateMany({
           where: { productId: id },
