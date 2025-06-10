@@ -114,7 +114,7 @@ model SuperAdmin {
 }
 
 model Pharmacy {
-  id             String    @id @default(uuid())
+  id             String    @id @default(cuid())
   name           String    @unique
   description    String
   slug           String    @unique
@@ -374,16 +374,15 @@ model Prescription {
 }
 
 model OrderStock {
-  id                    String    @id @default(cuid())
+  id                    String   @id @default(cuid())
   quantity_base_default Float
   product_unit_name     String
   quantity_unit         Float
   product_unit_weight   Float
   product_ratio         Float
   priceAtPurchase       Float
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  deletedAt             DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   // Relations
   orderId String
