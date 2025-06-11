@@ -6,7 +6,7 @@ export class PaginationQueryParams {
   @IsOptional()
   @IsNumber()
   @Transform(({ value }) => parseInt(value))
-  readonly take: number = 5;
+  readonly take: number = 10;
 
   @IsOptional()
   @IsNumber()
