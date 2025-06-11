@@ -11,6 +11,7 @@ import { CloudinaryService } from "../cloudinary/cloudinary.service";
 import { MailService } from "../mail/mail.service";
 import { ResetPasswordDTO } from "./dto/reset-password.dto";
 import { forgotPasswordDTO } from "./dto/forgot-password.dto";
+import axios from "axios";
 
 @injectable()
 export class AuthService {
@@ -35,7 +36,7 @@ export class AuthService {
 
     const isPasswordValid = await this.passwordService.comparePassword(
       password,
-      exsistingAccount.password,
+      exsistingAccount.password!,
     );
 
     if (!isPasswordValid) {
@@ -207,5 +208,59 @@ export class AuthService {
     );
 
     return { message: "Send email success" };
+  };
+
+  googleLogin = async (token: string) => {
+    const response = await axios.get(
+      "https://www.googleapis.com/oauth2/v3/userinfo", // URL benar
+      {
+        headers: { Authorization: `Bearer ${token}` }, // Header benar
+      },
+    );
+
+    const payload = response.data;
+    if (!payload.email) throw new ApiError("Invalid google email", 400);
+
+    let account = await this.prisma.account.findUnique({
+      where: { email: payload.email },
+    });
+
+    if (!account) {
+      await this.prisma.$transaction(async (tx) => {
+        account = await tx.account.create({
+          data: {
+            email: payload.email,
+            fullName: payload.name,
+            isVerified: true,
+            role: "USER",
+          },
+        });
+
+        await tx.user.create({
+          data: {
+            accountId: account.id,
+          },
+        });
+      });
+    }
+
+    if (!account) {
+      throw new ApiError("Gagal membuat akun", 500);
+    }
+
+    const { password: pw, ...accountWithoutPassword } = account;
+
+    const accessToken = this.tokenService.generateToken(
+      {
+        id: account.id,
+        role: account.role,
+      },
+      env().JWT_SECRET,
+      { expiresIn: "48h" },
+    );
+
+    // const apiAccount = {name, role, image, email, isVerified}
+
+    return {...accountWithoutPassword, accessToken };
   };
 }
