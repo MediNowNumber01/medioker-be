@@ -32,7 +32,6 @@ export class AuthRouter {
       uploader().fields([{ name: "image", maxCount: 1 }]),
       fileFilter,
       validateBody(RegisterDTO),
-
       this.authController.register,
     );
     this.router.post("/verify/:token", this.authController.verify);
@@ -41,7 +40,10 @@ export class AuthRouter {
       validateBody(forgotPasswordDTO),
       this.authController.forgotPassword,
     );
-
+    this.router.post(
+      "/google-login",
+      this.authController.googleLogin,
+    );
     this.router.patch(
       "/reset-password",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET_FORGOT_PASSWORD!),

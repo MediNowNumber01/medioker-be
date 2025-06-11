@@ -12,7 +12,7 @@ model Account {
   id          String      @id @default(cuid())
   fullName    String
   email       String      @unique
-  password    String
+  password    String?
   role        Role        @default(USER)
   profilePict String?
   isVerified  Boolean     @default(false)
