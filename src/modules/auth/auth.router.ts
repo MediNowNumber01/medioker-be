@@ -42,7 +42,6 @@ export class AuthRouter {
     );
     this.router.post(
       "/google-login",
-      // validateBody(forgotPasswordDTO),
       this.authController.googleLogin,
     );
     this.router.patch(

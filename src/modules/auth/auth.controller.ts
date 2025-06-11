@@ -67,22 +67,6 @@ export class AuthController {
     }
   };
 
-  //   googleLogin = async (req: Request, res: Response, next: NextFunction) => {
-  //   try {
-  //     const authHeader = req.headers.authorization;
-  //     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-  //       throw new Error('Token tidak valid');
-  //     }
-  //     const token = authHeader.replace('Bearer ', '');
-
-  //     const result = await this.authService.googleLogin(token);
-  //     res.status(200).json(result);
-  //   } catch (error) {
-  //     next(error);
-  //   }
-  // };
-
-  // Controller Backend
   googleLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { token } = req.body; // Ambil token dari body

@@ -212,9 +212,9 @@ export class AuthService {
 
   googleLogin = async (token: string) => {
     const response = await axios.get(
-      "https://www.googleapis.com/oauth2/v3/userinfo", // URL benar
+      "https://www.googleapis.com/oauth2/v3/userinfo", 
       {
-        headers: { Authorization: `Bearer ${token}` }, // Header benar
+        headers: { Authorization: `Bearer ${token}` }, 
       },
     );
 
@@ -259,7 +259,6 @@ export class AuthService {
       { expiresIn: "48h" },
     );
 
-    // const apiAccount = {name, role, image, email, isVerified}
 
     return {...accountWithoutPassword, accessToken };
   };
