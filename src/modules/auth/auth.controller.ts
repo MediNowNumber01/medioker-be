@@ -66,4 +66,16 @@ export class AuthController {
       next(error);
     }
   };
+
+  googleLogin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { token } = req.body; // Ambil token dari body
+      if (!token) throw new Error("Token tidak valid");
+
+      const result = await this.authService.googleLogin(token);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
