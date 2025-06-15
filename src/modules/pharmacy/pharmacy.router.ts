@@ -2,18 +2,16 @@ import { Router } from "express";
 import { autoInjectable } from "tsyringe";
 import { env } from "../../config";
 import { JwtMiddleware } from "../../middleware/jwt.middleware";
-import { fileFilter, uploader } from "../../middleware/uploader.middleware";
 import { verifyRole } from "../../middleware/role.middleware";
+import { fileFilter, uploader } from "../../middleware/uploader.middleware";
 import {
-  StrictValidateBody,
-  validateBody,
+  StrictValidateBody
 } from "../../middleware/validation.middleware";
+import { assignAdminPharmacyDTO } from "./dto/assignAdminPharmacy.dto";
 import { CreatePharmacyDTO } from "./dto/create-pharmacy.dto";
 import { UpdatePharmacyDTO } from "./dto/update-pharmacy.dto";
-import { PharmacyController } from "./pharmacy.controller";
-import { GetPharmaciesDTO } from "./dto/get-pharmacies.dto";
-import { assignAdminPharmacyDTO } from "./dto/assignAdminPharmacy.dto";
 import { VerifyNamePharmacyDTO } from "./dto/verify-name.dto";
+import { PharmacyController } from "./pharmacy.controller";
 
 @autoInjectable()
 export class PharmacyRouter {

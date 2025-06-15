@@ -1,4 +1,4 @@
-import { CatCreate, Golongan } from "@prisma/client";
+import { Acquisition, Golongan } from "@prisma/client";
 import { Transform } from "class-transformer";
 import {
   IsBoolean,
@@ -38,10 +38,10 @@ export class UpdateProductInfoDTO {
 
   @IsOptional()
   @IsString()
-  @IsEnum(CatCreate, {
-    message: "catCreate must be one of the predefined values",
+  @IsEnum(Acquisition, {
+    message: "acquisition must be one of the predefined values",
   })
-  readonly catCreate?: CatCreate;
+  readonly acquisition?: Acquisition;
 
   @IsOptional()
   @IsString()

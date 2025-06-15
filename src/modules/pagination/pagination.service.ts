@@ -24,6 +24,7 @@ export class PaginationService {
     if (!isFirstPage && hasItemOnPreviousPage) {
       hasPrevious = true;
     }
+    const totalPages = Math.ceil(count / take);
 
     return {
       hasNext,
@@ -31,6 +32,7 @@ export class PaginationService {
       page,
       perPage: take,
       total: count,
+      totalPages,
     };
   }
 }
