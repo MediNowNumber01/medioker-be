@@ -1,10 +1,11 @@
-import { CatCreate, Golongan } from "@prisma/client";
+import { Acquisition, Golongan } from "@prisma/client";
 import { Transform } from "class-transformer";
 import {
   IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   Matches,
   MinLength,
@@ -37,10 +38,10 @@ export class CreateProductInfoDTO {
 
   @IsString()
   @IsNotEmpty()
-  @IsEnum(CatCreate, {
-    message: "catCreate must be one of the predefined values",
+  @IsEnum(Acquisition, {
+    message: "acquisition must be one of the predefined values",
   })
-  readonly catCreate!: CatCreate;
+  readonly acquisition!: Acquisition;
 
   @IsString()
   @IsNotEmpty()
@@ -85,7 +86,11 @@ export class CreateProductInfoDTO {
   @Validate(MinWordsConstraint, [3])
   indication!: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString({ each: true })
   productCategory!: string[];
+
+  @IsNotEmpty()
+  @IsString()
+  brand!: string;
 }

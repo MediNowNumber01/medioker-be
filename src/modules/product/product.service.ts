@@ -1,4 +1,10 @@
-import { CatCreate, Golongan, Prisma, Product } from "@prisma/client";
+import {
+  Acquisition,
+  Golongan,
+  Pharmacy,
+  Prisma,
+  Product,
+} from "@prisma/client";
 import { injectable } from "tsyringe";
 import { ApiError } from "../../utils/api-error";
 import { generateSlug } from "../../utils/generate-slug";
@@ -282,12 +288,12 @@ export class ProductService {
   };
 
   public getProducts = async (query: GetProductsDTO) => {
-    const { data, meta } = await this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const { search, categoryId, pharmacyId, ...pagination } = query;
       const where: Prisma.ProductWhereInput = {
         deletedAt: null,
         published: true,
-        needsPrescription: false,
+        // needsPrescription: false,
       };
       if (search) {
         where.name = {
@@ -303,26 +309,34 @@ export class ProductService {
           },
         };
       }
-      let selectedPharmacy = pharmacyId;
-      if (selectedPharmacy) {
+      if (query.golongan) {
+        where.golongan = query.golongan as Golongan;
+      }
+      if (query.acquisition && query.acquisition.length > 0) {
+        where.acquisition = query.acquisition as Acquisition;
+      }
+      let selectedPharmacy: Pharmacy | null = null;
+      if (pharmacyId) {
         const existingPharmacy = await tx.pharmacy.findUnique({
           where: { id: pharmacyId, isOpen: true, deletedAt: null },
         });
         if (!existingPharmacy) {
-          throw new ApiError("Pharmacy not found", 404);
+          selectedPharmacy = null;
+        } else {
+          selectedPharmacy = existingPharmacy;
+          where.Stock = {
+            some: {
+              pharmacyId: existingPharmacy.id,
+            },
+          };
         }
-        where.Stock = {
-          some: {
-            pharmacyId,
-          },
-        };
-      } else {
+      }
+      if (!selectedPharmacy) {
         const mainPharmacy = await tx.pharmacy.findFirst({
           where: { isMain: true, isOpen: true, deletedAt: null },
-          select: { id: true },
         });
         if (mainPharmacy) {
-          selectedPharmacy = mainPharmacy.id;
+          selectedPharmacy = mainPharmacy;
           where.Stock = {
             some: {
               pharmacyId: mainPharmacy.id,
@@ -331,10 +345,9 @@ export class ProductService {
         } else {
           const excitingOpenPharmacy = await tx.pharmacy.findFirst({
             where: { isOpen: true, deletedAt: null },
-            select: { id: true },
           });
           if (excitingOpenPharmacy) {
-            selectedPharmacy = excitingOpenPharmacy.id;
+            selectedPharmacy = excitingOpenPharmacy;
             where.Stock = {
               some: {
                 pharmacyId: excitingOpenPharmacy.id,
@@ -345,7 +358,6 @@ export class ProductService {
           }
         }
       }
-
       let paginationArgs: Prisma.ProductFindManyArgs = {};
       if (!pagination.all) {
         paginationArgs = {
@@ -353,21 +365,30 @@ export class ProductService {
           take: pagination.take,
         };
       }
+      if (
+        pagination.sortBy &&
+        ["name", "createdAt", "updatedAt"].includes(pagination.sortBy)
+      ) {
+        paginationArgs.orderBy = {
+          [pagination.sortBy]: pagination.sortOrder,
+        };
+      }
       const data = await tx.product.findMany({
         where,
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          description: true,
-          golongan: true,
-          catCreate: true,
+        include: {
+          UnitProduct: {
+            select: {
+              id: true,
+              price: true,
+              name: true,
+            },
+          },
           ProductImage: {
             where: { isThumbnail: true },
             take: 1,
           },
           Stock: {
-            where: { pharmacyId: selectedPharmacy },
+            where: { pharmacyId: selectedPharmacy.id },
             select: {
               quantity: true,
             },
@@ -376,8 +397,7 @@ export class ProductService {
             select: {
               category: {
                 select: {
-                  name: true,
-                  color: true,
+                  id: true,
                 },
               },
             },
@@ -389,6 +409,7 @@ export class ProductService {
 
       return {
         data,
+        pharmacy: selectedPharmacy,
         meta: this.paginationService.generateMeta({
           page: pagination.page,
           take: pagination.all ? count : pagination.take,
@@ -396,11 +417,7 @@ export class ProductService {
         }),
       };
     });
-    return {
-      data,
-      meta,
-      message: "Products retrieved successfully",
-    };
+    return result;
   };
 
   public getAdminProducts = async (query: GetProductsDTO) => {
@@ -459,12 +476,7 @@ export class ProductService {
           },
           ProductCategory: {
             select: {
-              category: {
-                select: {
-                  name: true,
-                  color: true,
-                },
-              },
+              category: true,
             },
           },
         },
@@ -545,13 +557,7 @@ export class ProductService {
         },
         ProductCategory: {
           select: {
-            category: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
+            category: true,
           },
         },
       },
@@ -569,7 +575,9 @@ export class ProductService {
   public createProductInfo = async (body: CreateProductInfoDTO) => {
     const data = await this.prisma.$transaction(async (tx) => {
       await this.validateProductName(tx, body.name);
-      await this.validateCategory(tx, body.productCategory);
+      if (body.productCategory.length > 0) {
+        await this.validateCategory(tx, body.productCategory);
+      }
       const slug = generateSlug(body.name);
       await this.validateSlug(tx, slug);
       const data = await tx.product.create({
@@ -577,9 +585,10 @@ export class ProductService {
           name: body.name,
           nameMIMS: body.nameMIMS,
           golongan: body.golongan as Golongan,
-          catCreate: body.catCreate as CatCreate,
+          acquisition: body.acquisition as Acquisition,
           nomorEdar: body.nomorEdar,
-          needsPrescription: body.needsPrescription,
+          needsPrescription:
+            body.golongan === "OBAT_KERAS" ? true : body.needsPrescription,
           dose: body.dose,
           composition: body.composition,
           sideEffects: body.sideEffects,
@@ -587,6 +596,7 @@ export class ProductService {
           slug: slug,
           description: body.description,
           published: false,
+          brand: body.brand,
         },
       });
       if (!data) {
