@@ -256,29 +256,7 @@ export class ProductService {
           where: { id },
           data: { deletedAt: new Date() },
         });
-        const excitingOrder = await tx.order.findMany({
-          where: {
-            OrderStock: { some: { stock: { productId: id } } },
-            status: { not: "COMPLETED" },
-          },
-        });
-        if (excitingOrder.length > 0) {
-          await tx.orderActivity.createMany({
-            data: excitingOrder.map((order) => ({
-              orderId: order.id,
-              status: "CANCELED",
-            })),
-          });
-          await tx.order.updateMany({
-            where: {
-              OrderStock: { some: { stock: { productId: id } } },
-              status: { not: "COMPLETED" },
-            },
-            data: {
-              status: "CANCELED",
-            },
-          });
-        }
+
         const excitingOrder = await tx.order.findMany({
           where: {
             OrderStock: { some: { stock: { productId: id } } },
@@ -347,7 +325,6 @@ export class ProductService {
       let selectedPharmacy: Pharmacy | null = null;
       if (pharmacyId) {
         const existingPharmacy = await tx.pharmacy.findUnique({
-          where: { id: pharmacyId, isOpen: true, deletedAt: null },
           where: { id: pharmacyId, isOpen: true, deletedAt: null },
         });
         if (!existingPharmacy) {
@@ -647,7 +624,6 @@ export class ProductService {
   };
 
   public verifyExistingName = async (body: verifyExistingNameDTO) => {
-  public verifyExistingName = async (body: verifyExistingNameDTO) => {
     const result = await this.prisma.$transaction(async (tx) => {
       if (body.id) {
         await this.validateProductId(tx, body.id);
@@ -656,7 +632,6 @@ export class ProductService {
       if (body.id) {
         await this.validateProductId(tx, body.id);
       }
-      const data = await this.validateProductName(tx, body.name, body.id);
       return data;
     });
     return {
