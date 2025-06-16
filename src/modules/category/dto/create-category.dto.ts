@@ -21,10 +21,4 @@ export class CreateCategoryDTO {
   @IsNotEmpty()
   @Validate(MinWordsConstraint, [3])
   description!: string;
-
-  @IsString()
-  @Transform(({ value }) => value.trim())
-  @IsNotEmpty()
-  @Matches(/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/)
-  color!: string;
 }
