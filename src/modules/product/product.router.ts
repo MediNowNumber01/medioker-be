@@ -62,11 +62,7 @@ export class ProductRouter {
       this.productController.createUnitProduct,
     );
     // ================read================
-    this.router.get(
-      "/",
-      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      this.productController.getProducts,
-    );
+    this.router.get("/", this.productController.getProducts);
     this.router.get(
       "/dashboard",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),

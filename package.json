@@ -12,6 +12,9 @@
     "test:integration": "cross-env TEST_TYPE=integration jest --runInBand",
     "test:unit": "jest --forceExit --detectOpenHandles"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed/seed.ts"
+  },
   "keywords": [],
   "author": "Daniel Reinhard",
   "license": "ISC",

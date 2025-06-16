@@ -12,6 +12,10 @@ import { RegisterDTO } from "./dto/register.dto";
 import { ResetPasswordDTO } from "./dto/reset-password.dto";
 import { PasswordService } from "./password.service";
 import { TokenService } from "./token.service";
+import { CloudinaryService } from "../cloudinary/cloudinary.service";
+import { MailService } from "../mail/mail.service";
+import { ResetPasswordDTO } from "./dto/reset-password.dto";
+import { forgotPasswordDTO } from "./dto/forgot-password.dto";
 
 @injectable()
 export class AuthService {

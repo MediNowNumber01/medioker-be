@@ -178,22 +178,23 @@ enum TypeHistory {
 }
 
 model Product {
-  id                String    @id @default(cuid())
-  name              String    @unique
-  slug              String    @unique
-  published         Boolean   @default(false)
+  id                String      @id @default(cuid())
+  name              String      @unique
+  slug              String      @unique
+  published         Boolean     @default(false)
   nameMIMS          String
   golongan          Golongan
-  catCreate         CatCreate
+  acquisition       Acquisition
   nomorEdar         String
-  needsPrescription Boolean   @default(false)
+  brand             String
+  needsPrescription Boolean     @default(false)
   description       String
   composition       String
   dose              String
   sideEffects       String
   indication        String
-  CreatedAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
   deletedAt         DateTime?
 
   // Relations
@@ -206,13 +207,12 @@ model Product {
 }
 
 enum Golongan {
-  OBAT_UMUM
+  OBAT_TERBATAS
   OBAT_KERAS
   OBAT_BEBAS
-  OBAT_PRESKIPSI
 }
 
-enum CatCreate {
+enum Acquisition {
   GENERIK
   NON_GENERIK
   HERBAL
@@ -222,7 +222,6 @@ model Category {
   id          String   @id @default(cuid())
   name        String   @unique
   description String
-  color       String
   updatedAt   DateTime @updatedAt
   createdAt   DateTime @default(now())
 

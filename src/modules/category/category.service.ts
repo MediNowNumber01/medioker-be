@@ -54,7 +54,6 @@ export class CategoryService {
       data: {
         name,
         description,
-        color,
       },
     });
     return {
