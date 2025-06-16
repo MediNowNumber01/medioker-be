@@ -4,10 +4,15 @@ import { AuthService } from "./auth.service";
 import { LoginDTO } from "./dto/login.dto";
 import { RegisterDTO } from "./dto/register.dto";
 import { ApiError } from "../../utils/api-error";
+import { TokenService } from "./token.service";
+import { env } from "../../config";
 
 @injectable()
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly tokenService: TokenService,
+  ) {}
 
   login = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -22,7 +27,7 @@ export class AuthController {
   register = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-      const profilePict = files.image?.[0];
+      const profilePict = files.profilePict?.[0];
       const body = req.body as RegisterDTO;
 
       const result = await this.authService.register(body, profilePict);
@@ -60,6 +65,8 @@ export class AuthController {
 
   forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      console.log("hit contgro");
+
       const result = await this.authService.forgotPassword(req.body);
       res.status(200).send(result);
     } catch (error) {
@@ -75,6 +82,23 @@ export class AuthController {
       const result = await this.authService.googleLogin(token);
       res.status(200).json(result);
     } catch (error) {
+      next(error);
+    }
+  };
+
+  verifyResetToken = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const { token } = req.params;
+      this.tokenService.verifyToken(token, env().JWT_SECRET_FORGOT_PASSWORD!);
+
+      res.status(200).send({ message: "Token is valid" });
+    } catch (error) {
+      // Jika verifyTokenLogic melempar error, `next(error)` akan menanganinya
+      // dan mengirim respons error (misal: 401 Unauthorized)
       next(error);
     }
   };
