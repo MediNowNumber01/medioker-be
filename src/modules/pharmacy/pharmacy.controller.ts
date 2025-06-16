@@ -94,6 +94,19 @@ export class PharmacyController {
     }
   };
 
+  public getDashboardPharmacies = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const result = await this.pharmacyService.getDashboardPharmacies();
+      res.status(200).send(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public getPharmacies = async (
     req: Request,
     res: Response,

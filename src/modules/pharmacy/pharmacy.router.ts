@@ -4,9 +4,7 @@ import { env } from "../../config";
 import { JwtMiddleware } from "../../middleware/jwt.middleware";
 import { verifyRole } from "../../middleware/role.middleware";
 import { fileFilter, uploader } from "../../middleware/uploader.middleware";
-import {
-  StrictValidateBody
-} from "../../middleware/validation.middleware";
+import { StrictValidateBody } from "../../middleware/validation.middleware";
 import { assignAdminPharmacyDTO } from "./dto/assignAdminPharmacy.dto";
 import { CreatePharmacyDTO } from "./dto/create-pharmacy.dto";
 import { UpdatePharmacyDTO } from "./dto/update-pharmacy.dto";
@@ -54,6 +52,12 @@ export class PharmacyRouter {
       "/",
       this.jwtMiddleware.verifyTokenNoThrow(env().JWT_SECRET),
       this.pharmacyController.getPharmacies,
+    );
+    this.router.get(
+      "/dashboard",
+      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
+      verifyRole(["SUPER_ADMIN"]),
+      this.pharmacyController.getDashboardPharmacies,
     );
     this.router.get(
       "/admin/:pharmacyId",

@@ -234,6 +234,39 @@ export class PharmacyService {
     };
   };
 
+  public getDashboardPharmacies = async () => {
+    let totalPharmacies = 0;
+    let openPharmacies = 0;
+    let closedPharmacies = 0;
+    let totalAdmins = 0;
+    let assignedAdmin = 0;
+    let unassignedAdmin = 0;
+    const pharmacies = await this.prisma.pharmacy.findMany({
+      where: { deletedAt: null },
+      include: {
+        _count: {
+          select: { Admin: true },
+        },
+      },
+    });
+    totalPharmacies = pharmacies.length;
+    openPharmacies = pharmacies.filter((p) => p.isOpen).length;
+    closedPharmacies = pharmacies.filter((p) => !p.isOpen).length;
+    totalAdmins = pharmacies.reduce((acc, p) => acc + p._count.Admin, 0);
+    assignedAdmin = pharmacies.filter((p) => p._count.Admin > 0).length;
+    return {
+      data: {
+        totalPharmacies,
+        openPharmacies,
+        closedPharmacies,
+        totalAdmins,
+        assignedAdmin,
+        unassignedAdmin: totalAdmins - assignedAdmin,
+      },
+      message: "Dashboard pharmacies fetched successfully",
+    };
+  };
+
   public getPharmacies = async (query: GetPharmaciesDTO, isSuper: boolean) => {
     const { search, page, take, sortBy, sortOrder, all } = query;
     const where: Prisma.PharmacyWhereInput = {
@@ -241,6 +274,13 @@ export class PharmacyService {
     };
     if (!isSuper) {
       where.isOpen = true;
+    } else if (query.isOpen !== undefined) {
+      where.isOpen =
+        query.isOpen === "open"
+          ? true
+          : query.isOpen === "closed"
+            ? false
+            : undefined;
     }
     if (search) {
       where.name = { contains: search, mode: "insensitive" };
@@ -257,6 +297,13 @@ export class PharmacyService {
       where,
       orderBy: { [sortBy]: sortOrder },
       ...paginationArgs,
+      include: isSuper
+        ? {
+            _count: {
+              select: { Admin: true },
+            },
+          }
+        : undefined,
     });
     return {
       data: result,

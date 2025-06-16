@@ -10,11 +10,17 @@ export class ValidLocationConstraint implements ValidatorConstraintInterface {
     if (typeof loc !== "string") {
       return false;
     }
-    const split = loc.split(".");
-    if (split.length < 2) {
+    if (!/^[0-9.\-]+$/.test(loc)) {
       return false;
     }
-    if (split.length > 3) {
+    const split = loc.split(".");
+    if (!split[0] && split[0].length) {
+      return false;
+    }
+    if (split.length !== 2) {
+      return false;
+    }
+    if (isNaN(Number(split[0])) || isNaN(Number(split[1]))) {
       return false;
     }
     if (split[1].length < 6) {
