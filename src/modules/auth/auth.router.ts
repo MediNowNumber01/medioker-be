@@ -29,7 +29,7 @@ export class AuthRouter {
     );
     this.router.post(
       "/register",
-      uploader().fields([{ name: "image", maxCount: 1 }]),
+      uploader().fields([{ name: "profilePict", maxCount: 1 }]),
       fileFilter,
       validateBody(RegisterDTO),
       this.authController.register,
@@ -40,15 +40,16 @@ export class AuthRouter {
       validateBody(forgotPasswordDTO),
       this.authController.forgotPassword,
     );
-    this.router.post(
-      "/google-login",
-      this.authController.googleLogin,
-    );
+    this.router.post("/google-login", this.authController.googleLogin);
     this.router.patch(
       "/reset-password",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET_FORGOT_PASSWORD!),
       validateBody(ResetPasswordDTO),
       this.authController.resetPassword,
+    );
+    this.router.get(
+      "/verify-reset-token/:token",
+      this.authController.verifyResetToken, 
     );
   };
 

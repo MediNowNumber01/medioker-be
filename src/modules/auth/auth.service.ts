@@ -1,17 +1,17 @@
+import axios from "axios";
 import { injectable } from "tsyringe";
 import { env } from "../../config";
 import { ApiError } from "../../utils/api-error";
-import { PrismaService } from "../prisma/prisma.service";
-import { prismaExclude } from "../prisma/utils";
-import { LoginDTO } from "./dto/login.dto";
-import { RegisterDTO } from "./dto/register.dto";
-import { PasswordService } from "./password.service";
-import { TokenService } from "./token.service";
 import { CloudinaryService } from "../cloudinary/cloudinary.service";
 import { MailService } from "../mail/mail.service";
-import { ResetPasswordDTO } from "./dto/reset-password.dto";
+import { PrismaService } from "../prisma/prisma.service";
+import { prismaExclude } from "../prisma/utils";
 import { forgotPasswordDTO } from "./dto/forgot-password.dto";
-import axios from "axios";
+import { LoginDTO } from "./dto/login.dto";
+import { RegisterDTO } from "./dto/register.dto";
+import { ResetPasswordDTO } from "./dto/reset-password.dto";
+import { PasswordService } from "./password.service";
+import { TokenService } from "./token.service";
 
 @injectable()
 export class AuthService {
@@ -26,17 +26,17 @@ export class AuthService {
   login = async (body: LoginDTO) => {
     const { email, password } = body;
 
-    const exsistingAccount = await this.prisma.account.findFirst({
+    const account = await this.prisma.account.findFirst({
       where: { email },
     });
 
-    if (!exsistingAccount) {
+    if (!account) {
       throw new ApiError("User not found", 404);
     }
 
     const isPasswordValid = await this.passwordService.comparePassword(
       password,
-      exsistingAccount.password!,
+      account.password!,
     );
 
     if (!isPasswordValid) {
@@ -45,13 +45,15 @@ export class AuthService {
 
     const accessToken = this.tokenService.generateToken(
       {
-        id: exsistingAccount.id,
-        role: exsistingAccount.role,
+        id: account.id,
+        role: account.role,
+        isVerified: account.isVerified,
       },
       env().JWT_SECRET,
     );
 
-    const { password: pw, ...accountWithoutPassword } = exsistingAccount;
+    const { password: pw, ...accountWithoutPassword } = account;
+    console.log(accessToken);
 
     return { ...accountWithoutPassword, accessToken };
   };
@@ -131,12 +133,12 @@ export class AuthService {
         { expiresIn: "1h" },
       );
 
-      // const verifyLink = `${BASE_URL_FE}/reset-password/${token}`
+      const verifyLink = `${env().BASE_URL_FE}/reset-password/${token}`;
 
       this.mailService.sendEmail(email, "Verify Account", "verify-account", {
         fullName,
         email,
-        verificationUrl: "",
+        verificationUrl: verifyLink,
       });
 
       console.log(token);
@@ -154,8 +156,6 @@ export class AuthService {
   };
 
   resetPassword = async (body: ResetPasswordDTO, authUserId: string) => {
-    console.log("HIT");
-
     const user = await this.prisma.account.findFirst({
       where: { id: authUserId },
     });
@@ -181,9 +181,8 @@ export class AuthService {
 
     const account = await this.prisma.account.findFirst({
       where: { email },
+      omit: { password: true },
     });
-
-    console.log(account);
 
     if (!account) {
       throw new ApiError("Invalid credentials", 400);
@@ -197,24 +196,22 @@ export class AuthService {
 
     console.log(token);
 
-    // const link = `${BASE_URL_FE}/reset-password/${token}`;
+    const link = `${env().BASE_URL_FE!}/reset-password/${token}`;
 
-    this.mailService.sendEmail(
-      email,
-      "Link reset password",
-      "example",
-      // { fullName: account.fullName, /*resetLink: link, */ expiryTime: 1 }
-      { name: account.fullName },
-    );
+    this.mailService.sendEmail(email, "Link reset password", "reset-password", {
+      fullName: account.fullName,
+      resetLink: link,
+      expiryTime: 1,
+    });
 
     return { message: "Send email success" };
   };
 
   googleLogin = async (token: string) => {
     const response = await axios.get(
-      "https://www.googleapis.com/oauth2/v3/userinfo", 
+      "https://www.googleapis.com/oauth2/v3/userinfo",
       {
-        headers: { Authorization: `Bearer ${token}` }, 
+        headers: { Authorization: `Bearer ${token}` },
       },
     );
 
@@ -230,6 +227,7 @@ export class AuthService {
         account = await tx.account.create({
           data: {
             email: payload.email,
+            profilePict: payload.picture,
             fullName: payload.name,
             isVerified: true,
             role: "USER",
@@ -254,12 +252,13 @@ export class AuthService {
       {
         id: account.id,
         role: account.role,
+        profilePict: account.profilePict,
+        isVerified: account.isVerified,
       },
       env().JWT_SECRET,
       { expiresIn: "48h" },
     );
 
-
-    return {...accountWithoutPassword, accessToken };
+    return { ...accountWithoutPassword, accessToken };
   };
 }
