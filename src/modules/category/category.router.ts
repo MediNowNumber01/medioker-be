@@ -34,7 +34,7 @@ export class CategoryRouter {
       StrictValidateBody(GetCategoriesDTO),
       this.categoryController.getCategories,
     );
-    this.router.put(
+    this.router.patch(
       "/:id",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
