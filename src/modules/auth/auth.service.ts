@@ -12,10 +12,6 @@ import { RegisterDTO } from "./dto/register.dto";
 import { ResetPasswordDTO } from "./dto/reset-password.dto";
 import { PasswordService } from "./password.service";
 import { TokenService } from "./token.service";
-import { CloudinaryService } from "../cloudinary/cloudinary.service";
-import { MailService } from "../mail/mail.service";
-import { ResetPasswordDTO } from "./dto/reset-password.dto";
-import { forgotPasswordDTO } from "./dto/forgot-password.dto";
 
 @injectable()
 export class AuthService {
@@ -51,13 +47,13 @@ export class AuthService {
       {
         id: account.id,
         role: account.role,
-        isVerified: account.isVerified
+        isVerified: account.isVerified,
       },
       env().JWT_SECRET,
     );
 
     const { password: pw, ...accountWithoutPassword } = account;
-console.log(accessToken);
+    console.log(accessToken);
 
     return { ...accountWithoutPassword, accessToken };
   };
@@ -137,7 +133,7 @@ console.log(accessToken);
         { expiresIn: "1h" },
       );
 
-      const verifyLink = `${env().BASE_URL_FE}/reset-password/${token}`
+      const verifyLink = `${env().BASE_URL_FE}/reset-password/${token}`;
 
       this.mailService.sendEmail(email, "Verify Account", "verify-account", {
         fullName,
@@ -160,7 +156,6 @@ console.log(accessToken);
   };
 
   resetPassword = async (body: ResetPasswordDTO, authUserId: string) => {
-
     const user = await this.prisma.account.findFirst({
       where: { id: authUserId },
     });
@@ -258,7 +253,7 @@ console.log(accessToken);
         id: account.id,
         role: account.role,
         profilePict: account.profilePict,
-        isVerified: account.isVerified
+        isVerified: account.isVerified,
       },
       env().JWT_SECRET,
       { expiresIn: "48h" },
@@ -266,7 +261,4 @@ console.log(accessToken);
 
     return { ...accountWithoutPassword, accessToken };
   };
-
 }
-
-
