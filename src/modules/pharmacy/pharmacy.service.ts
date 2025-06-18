@@ -65,7 +65,6 @@ export class PharmacyService {
       if (!validName) {
         throw new ApiError("Pharmacy name already exists", 400);
       }
-      const slug = generateSlug(body.name);
 
       let pictureUrl = "";
       if (pictureFile) {
@@ -87,7 +86,6 @@ export class PharmacyService {
       const newPharmacy = await tx.pharmacy.create({
         data: {
           ...body,
-          slug,
           isOpen: false,
           picture: pictureUrl,
         },
@@ -115,15 +113,11 @@ export class PharmacyService {
     });
   };
 
-  public verifyPharmacyName = async (body: VerifyNamePharmacyDTO) => {
-    if (body.id) {
-      await this.getPharmacyById(this.prisma, body.id, true);
+  public verifyPharmacyName = async (dto: VerifyNamePharmacyDTO) => {
+    if (dto.id) {
+      await this.getPharmacyById(this.prisma, dto.id, true);
     }
-    const data = await this.validatePharmacyName(
-      this.prisma,
-      body.name,
-      body.id,
-    );
+    const data = await this.validatePharmacyName(this.prisma, dto.name, dto.id);
     return {
       isValid: data,
       message: data
@@ -370,7 +364,6 @@ export class PharmacyService {
         where: { id },
         data: {
           ...body,
-          slug: body.name ? generateSlug(body.name) : undefined,
           picture: pictureUrl,
         },
       });

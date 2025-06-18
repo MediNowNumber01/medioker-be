@@ -34,13 +34,6 @@ export class PharmacyRouter {
     );
 
     this.router.post(
-      "/verify-name",
-      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      verifyRole(["SUPER_ADMIN"]),
-      StrictValidateBody(VerifyNamePharmacyDTO),
-      this.pharmacyController.verifyPharmacyName,
-    );
-    this.router.post(
       "/admin",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
@@ -58,6 +51,12 @@ export class PharmacyRouter {
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
       this.pharmacyController.getDashboardPharmacies,
+    );
+    this.router.get(
+      "/verify-name",
+      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
+      verifyRole(["SUPER_ADMIN"]),
+      this.pharmacyController.verifyPharmacyName,
     );
     this.router.get(
       "/admin/:pharmacyId",

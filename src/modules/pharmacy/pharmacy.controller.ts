@@ -8,6 +8,8 @@ import { PharmacyService } from "./pharmacy.service";
 import { ApiError } from "../../utils/api-error";
 import { assignAdminPharmacyDTO } from "./dto/assignAdminPharmacy.dto";
 import { VerifyNamePharmacyDTO } from "./dto/verify-name.dto";
+import { StrictValidateBody } from "../../middleware/validation.middleware";
+import { validate } from "class-validator";
 
 @injectable()
 export class PharmacyController {
@@ -43,8 +45,13 @@ export class PharmacyController {
     next: NextFunction,
   ) => {
     try {
+      const query = plainToInstance(VerifyNamePharmacyDTO, req.query);
+      const error = await validate(query);
+      if (error.length > 0) {
+        throw new ApiError("Invalid query parameters", 400);
+      }
       const result = await this.pharmacyService.verifyPharmacyName(
-        req.body as VerifyNamePharmacyDTO,
+        query as VerifyNamePharmacyDTO,
       );
       res.status(200).send(result);
     } catch (error) {
