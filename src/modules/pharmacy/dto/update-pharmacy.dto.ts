@@ -4,10 +4,11 @@ import {
   IsOptional,
   IsString,
   MinLength,
-  Validate
+  Validate,
 } from "class-validator";
 import { MinWordsHTMLConstraint } from "../../../utils/min-html-words-constraint";
-import { ValidLocationConstraint } from "../../../utils/validLocations";
+import { ValidLatitude } from "../../../utils/ValidLatitude";
+import { ValidLongitude } from "../../../utils/ValidLongitude";
 
 export class UpdatePharmacyDTO {
   @IsOptional()
@@ -18,20 +19,25 @@ export class UpdatePharmacyDTO {
 
   @IsOptional()
   @IsString()
-  @Validate(MinWordsHTMLConstraint, [3])
-  description?: string;
-
-  @IsOptional()
-  @IsString()
   @MinLength(10)
   detailLocation?: string;
 
   @IsOptional()
-  @Validate(ValidLocationConstraint)
+  @Validate(ValidLatitude)
+  @Transform(({ value }) => {
+    const parts = value.split(".");
+    parts[1] = parts[1]?.slice(0, 7);
+    return parts.join(".");
+  })
   lat?: string;
 
   @IsOptional()
-  @Validate(ValidLocationConstraint)
+  @Validate(ValidLongitude)
+  @Transform(({ value }) => {
+    const parts = value.split(".");
+    parts[1] = parts[1]?.slice(0, 7);
+    return parts.join(".");
+  })
   lng?: string;
 
   @IsOptional()

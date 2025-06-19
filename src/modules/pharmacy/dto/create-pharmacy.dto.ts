@@ -3,23 +3,23 @@ import {
   IsBoolean,
   IsNotEmpty,
   IsString,
+  max,
+  MaxLength,
+  maxLength,
   MinLength,
-  Validate
+  Validate,
 } from "class-validator";
-import { MinWordsHTMLConstraint } from "../../../utils/min-html-words-constraint";
-import { ValidLocationConstraint } from "../../../utils/validLocations";
+import { MinWordsConstraint } from "../../../utils/min-words-constraint";
+import { ValidLatitude } from "../../../utils/ValidLatitude";
+import { ValidLongitude } from "../../../utils/ValidLongitude";
 
 export class CreatePharmacyDTO {
   @IsNotEmpty()
   @IsString()
   @Transform(({ value }) => value.trim())
   @MinLength(3)
+  @MaxLength(20)
   name!: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @Validate(MinWordsHTMLConstraint, [3])
-  description!: string;
 
   @IsNotEmpty()
   @IsString()
@@ -28,12 +28,23 @@ export class CreatePharmacyDTO {
 
   @IsNotEmpty()
   @IsString()
-  @Validate(ValidLocationConstraint)
+  @Transform(({ value }) => value.trim())
+  @Validate(ValidLatitude)
+  @Transform(({ value }) => {
+    const parts = value.split(".");
+    parts[1] = parts[1]?.slice(0, 7);
+    return parts.join(".");
+  })
   lat!: string;
-  
+
   @IsNotEmpty()
   @IsString()
-  @Validate(ValidLocationConstraint)
+  @Validate(ValidLongitude)
+  @Transform(({ value }) => {
+    const parts = value.split(".");
+    parts[1] = parts[1]?.slice(0, 7);
+    return parts.join(".");
+  })
   lng!: string;
 
   @IsNotEmpty()

@@ -19,7 +19,14 @@ export const fileFilter = async (
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
-
+    for (const fieldname in files) {
+      const fileArray = files[fieldname];
+      for (const file of fileArray) {
+        if (file.size > 2 * 1024 * 1024) {
+          throw new Error(`File size exceeds 2 MB limit`);
+        }
+      }
+    }
     for (const fieldname in files) {
       const fileArray = files[fieldname];
 

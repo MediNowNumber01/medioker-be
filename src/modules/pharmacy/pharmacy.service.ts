@@ -65,7 +65,6 @@ export class PharmacyService {
       if (!validName) {
         throw new ApiError("Pharmacy name already exists", 400);
       }
-      const slug = generateSlug(body.name);
 
       let pictureUrl = "";
       if (pictureFile) {
@@ -87,7 +86,6 @@ export class PharmacyService {
       const newPharmacy = await tx.pharmacy.create({
         data: {
           ...body,
-          slug,
           isOpen: false,
           picture: pictureUrl,
         },
@@ -115,15 +113,11 @@ export class PharmacyService {
     });
   };
 
-  public verifyPharmacyName = async (body: VerifyNamePharmacyDTO) => {
-    if (body.id) {
-      await this.getPharmacyById(this.prisma, body.id, true);
+  public verifyPharmacyName = async (dto: VerifyNamePharmacyDTO) => {
+    if (dto.id) {
+      await this.getPharmacyById(this.prisma, dto.id, true);
     }
-    const data = await this.validatePharmacyName(
-      this.prisma,
-      body.name,
-      body.id,
-    );
+    const data = await this.validatePharmacyName(this.prisma, dto.name, dto.id);
     return {
       isValid: data,
       message: data
@@ -234,6 +228,39 @@ export class PharmacyService {
     };
   };
 
+  public getDashboardPharmacies = async () => {
+    let totalPharmacies = 0;
+    let openPharmacies = 0;
+    let closedPharmacies = 0;
+    let totalAdmins = 0;
+    let assignedAdmin = 0;
+    let unassignedAdmin = 0;
+    const pharmacies = await this.prisma.pharmacy.findMany({
+      where: { deletedAt: null },
+      include: {
+        _count: {
+          select: { Admin: true },
+        },
+      },
+    });
+    totalPharmacies = pharmacies.length;
+    openPharmacies = pharmacies.filter((p) => p.isOpen).length;
+    closedPharmacies = pharmacies.filter((p) => !p.isOpen).length;
+    totalAdmins = pharmacies.reduce((acc, p) => acc + p._count.Admin, 0);
+    assignedAdmin = pharmacies.filter((p) => p._count.Admin > 0).length;
+    return {
+      data: {
+        totalPharmacies,
+        openPharmacies,
+        closedPharmacies,
+        totalAdmins,
+        assignedAdmin,
+        unassignedAdmin: totalAdmins - assignedAdmin,
+      },
+      message: "Dashboard pharmacies fetched successfully",
+    };
+  };
+
   public getPharmacies = async (query: GetPharmaciesDTO, isSuper: boolean) => {
     const { search, page, take, sortBy, sortOrder, all } = query;
     const where: Prisma.PharmacyWhereInput = {
@@ -241,6 +268,13 @@ export class PharmacyService {
     };
     if (!isSuper) {
       where.isOpen = true;
+    } else if (query.isOpen !== undefined) {
+      where.isOpen =
+        query.isOpen === "open"
+          ? true
+          : query.isOpen === "closed"
+            ? false
+            : undefined;
     }
     if (search) {
       where.name = { contains: search, mode: "insensitive" };
@@ -257,6 +291,13 @@ export class PharmacyService {
       where,
       orderBy: { [sortBy]: sortOrder },
       ...paginationArgs,
+      include: isSuper
+        ? {
+            _count: {
+              select: { Admin: true },
+            },
+          }
+        : undefined,
     });
     return {
       data: result,
@@ -283,7 +324,7 @@ export class PharmacyService {
     pictureFile?: Express.Multer.File,
   ) => {
     return this.prisma.$transaction(async (tx) => {
-      const existingPharmacy = await this.getPharmacyById(tx, id, false);
+      const existingPharmacy = await this.getPharmacyById(tx, id, true);
       if (!body.isMain && existingPharmacy.isMain) {
         throw new ApiError(
           "Cannot demote the main pharmacy directly. Please set another pharmacy as main.",
@@ -323,7 +364,6 @@ export class PharmacyService {
         where: { id },
         data: {
           ...body,
-          slug: body.name ? generateSlug(body.name) : undefined,
           picture: pictureUrl,
         },
       });
