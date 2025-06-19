@@ -324,7 +324,7 @@ export class PharmacyService {
     pictureFile?: Express.Multer.File,
   ) => {
     return this.prisma.$transaction(async (tx) => {
-      const existingPharmacy = await this.getPharmacyById(tx, id, false);
+      const existingPharmacy = await this.getPharmacyById(tx, id, true);
       if (!body.isMain && existingPharmacy.isMain) {
         throw new ApiError(
           "Cannot demote the main pharmacy directly. Please set another pharmacy as main.",
