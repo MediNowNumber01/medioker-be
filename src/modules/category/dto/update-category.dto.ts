@@ -4,7 +4,7 @@ import {
   IsString,
   Matches,
   MinLength,
-  Validate
+  Validate,
 } from "class-validator";
 import { MinWordsConstraint } from "../../../utils/min-words-constraint";
 
@@ -20,10 +20,4 @@ export class UpdateCategoryDTO {
   @Transform(({ value }) => value?.trim())
   @Validate(MinWordsConstraint, [3])
   description?: string;
-
-  @IsOptional()
-  @IsString()
-  @Transform(({ value }) => value?.trim())
-  @Matches(/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/)
-  color?: string;
 }

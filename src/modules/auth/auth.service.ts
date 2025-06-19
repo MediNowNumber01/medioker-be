@@ -54,7 +54,6 @@ export class AuthService {
     );
 
     const { password: pw, ...accountWithoutPassword } = account;
-    console.log(accountWithoutPassword);
 
     return { ...accountWithoutPassword, accessToken };
   };
@@ -142,8 +141,6 @@ export class AuthService {
         verificationUrl: verifyLink,
       });
 
-      console.log(token);
-
       await tx.user.create({
         data: {
           accountId: newAcc.id,
@@ -194,8 +191,6 @@ export class AuthService {
       env().JWT_SECRET_FORGOT_PASSWORD!,
       { expiresIn: "1h" },
     );
-
-    console.log(token);
 
     const link = `${env().BASE_URL_FE!}/reset-password/${token}`;
 

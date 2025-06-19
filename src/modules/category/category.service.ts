@@ -48,7 +48,7 @@ export class CategoryService {
   };
 
   public createCategory = async (dto: CreateCategoryDTO) => {
-    const { name, description, color } = dto;
+    const { name, description } = dto;
     await this.ValidateCategoryName(name);
     const data = await this.prisma.category.create({
       data: {
@@ -91,7 +91,7 @@ export class CategoryService {
           select: {
             ProductCategory: {
               where: {
-                product: { deletedAt: null },
+                product: { deletedAt: null, published: true },
               },
             },
           },

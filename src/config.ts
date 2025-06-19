@@ -5,8 +5,8 @@ import { IsNotEmpty, IsNumber, IsString, validateSync } from "class-validator";
 class EnvConfig {
   @IsNotEmpty()
   @IsString()
-  readonly BASE_URL_FE!: string
- 
+  readonly BASE_URL_FE!: string;
+
   @IsNotEmpty()
   @IsNumber()
   readonly PORT!: number;

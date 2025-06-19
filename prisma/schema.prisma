@@ -123,8 +123,6 @@ model SuperAdmin {
 model Pharmacy {
   id             String    @id @default(cuid())
   name           String    @unique
-  description    String
-  slug           String    @unique
   picture        String
   isOpen         Boolean
   createdAt      DateTime  @default(now())
