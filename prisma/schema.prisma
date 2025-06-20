@@ -15,6 +15,7 @@ model Account {
   password    String?
   role        Role        @default(USER)
   profilePict String?
+  provider    Provider?   @default(CREDENTIAL)
   isVerified  Boolean     @default(false)
   deletedAt   DateTime?
   createdAt   DateTime    @default(now())
@@ -24,6 +25,11 @@ model Account {
   SuperAdmin  SuperAdmin?
 
   @@map("accounts")
+}
+
+enum Provider {
+  GOOGLE
+  CREDENTIAL
 }
 
 model User {
@@ -37,7 +43,7 @@ model User {
   account        Account         @relation(fields: [accountId], references: [id])
   user_addresses UserAddresses[]
   Forum          Forum[]
-  Order          Order?
+  Order          Order[]
   Cart           Cart[]
 
   @@map("users")
@@ -65,6 +71,7 @@ model UserAddresses {
   id          String    @id @default(cuid())
   fullAddress String
   postalCode  String
+  label       String?
   latitude    String
   longitude   String
   isPrimary   Boolean
@@ -324,7 +331,7 @@ model Order {
   deletedAt     DateTime?
 
   // Relations
-  userId String @unique
+  userId String
   user   User   @relation(fields: [userId], references: [id])
 
   pharmacyId    String
@@ -364,7 +371,7 @@ model Prescription {
   source    String
 
   // Relations
-  orderId String @unique
+  orderId String
   order   Order  @relation(fields: [orderId], references: [id])
 
   @@map("prescriptions")

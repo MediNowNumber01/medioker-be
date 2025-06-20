@@ -6,6 +6,7 @@ import { Role } from "@prisma/client";
 export interface JwtPayload {
   id: string;
   role: Role;
+  isVerified: boolean
 }
 
 export class JwtMiddleware {

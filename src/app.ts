@@ -9,6 +9,7 @@ import { AuthRouter } from "./modules/auth/auth.router";
 import { CategoryRouter } from "./modules/category/category.router";
 import { ProductRouter } from "./modules/product/product.router";
 import { PharmacyRouter } from "./modules/pharmacy/pharmacy.router";
+import { PrescriptionRouter } from "./modules/prescription/prescription.router";
 
 export default class App {
   public app;
@@ -30,13 +31,15 @@ export default class App {
     const authRouter = container.resolve(AuthRouter);
     const categoryRouter = container.resolve(CategoryRouter);
     const productRouter = container.resolve(ProductRouter);
-    const pharmacyRouter = container.resolve(PharmacyRouter); // Resolve the pharmacy router
+    const pharmacyRouter = container.resolve(PharmacyRouter); 
+    const prescriptionsRouter = container.resolve(PrescriptionRouter)
 
     this.app.get("/", (_, res) => {
       res.send("Welcome");
     });
     this.app.use("/auth", authRouter.getRouter());
     this.app.use("/categories", categoryRouter.getRouter());
+    this.app.use("/prescriptions", prescriptionsRouter.getRouter())
     this.app.use("/products", productRouter.getRouter());
     this.app.use("/pharmacies", pharmacyRouter.getRouter());
   }
