@@ -1,15 +1,15 @@
 import { plainToInstance } from "class-transformer";
+import { validate } from "class-validator";
 import { NextFunction, Request, Response } from "express";
 import { injectable } from "tsyringe";
+import { ApiError } from "../../utils/api-error";
+import { assignEmployeePharmacyDTO } from "./dto/assignEmployeePharmacy.dto";
 import { CreatePharmacyDTO } from "./dto/create-pharmacy.dto";
 import { GetPharmaciesDTO } from "./dto/get-pharmacies.dto";
 import { UpdatePharmacyDTO } from "./dto/update-pharmacy.dto";
-import { PharmacyService } from "./pharmacy.service";
-import { ApiError } from "../../utils/api-error";
-import { assignAdminPharmacyDTO } from "./dto/assignAdminPharmacy.dto";
 import { VerifyNamePharmacyDTO } from "./dto/verify-name.dto";
-import { StrictValidateBody } from "../../middleware/validation.middleware";
-import { validate } from "class-validator";
+import { PharmacyService } from "./pharmacy.service";
+import { GetPharmacyEmployeesDTO } from "./dto/get-pharmacy-employee.dto";
 
 @injectable()
 export class PharmacyController {
@@ -59,42 +59,47 @@ export class PharmacyController {
     }
   };
 
-  public assignAdminPharmacy = async (
+  public assignEmployeePharmacy = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
     try {
-      const body = req.body as assignAdminPharmacyDTO;
-      const result = await this.pharmacyService.assignAdminPharmacy(body);
+      const body = req.body as assignEmployeePharmacyDTO;
+      const result = await this.pharmacyService.assignEmployeePharmacy(body);
       res.status(200).send(result);
     } catch (error) {
       next(error);
     }
   };
 
-  public unassignAdminPharmacy = async (
+  public unassignEmployeePharmacy = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
     try {
-      const adminId = req.params.adminId;
-      const result = await this.pharmacyService.unassignAdminPharmacy(adminId);
+      const employeeId = req.params.employeeId;
+      const result =
+        await this.pharmacyService.unassignEmployeePharmacy(employeeId);
       res.status(200).send(result);
     } catch (error) {
       next(error);
     }
   };
 
-  public getAssignedAdmins = async (
+  public getAssignedEmployees = async (
     req: Request,
     res: Response,
     next: NextFunction,
   ) => {
     try {
       const pharmacyId = req.params.pharmacyId;
-      const result = await this.pharmacyService.getAssignedAdmins(pharmacyId);
+      const query = plainToInstance(GetPharmacyEmployeesDTO, req.query);
+      const result = await this.pharmacyService.getAssignedEmployees(
+        pharmacyId,
+        query,
+      );
       res.status(200).send(result);
     } catch (error) {
       next(error);

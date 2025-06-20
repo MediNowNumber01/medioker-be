@@ -5,10 +5,9 @@ import { JwtMiddleware } from "../../middleware/jwt.middleware";
 import { verifyRole } from "../../middleware/role.middleware";
 import { fileFilter, uploader } from "../../middleware/uploader.middleware";
 import { StrictValidateBody } from "../../middleware/validation.middleware";
-import { assignAdminPharmacyDTO } from "./dto/assignAdminPharmacy.dto";
+import { assignEmployeePharmacyDTO } from "./dto/assignEmployeePharmacy.dto";
 import { CreatePharmacyDTO } from "./dto/create-pharmacy.dto";
 import { UpdatePharmacyDTO } from "./dto/update-pharmacy.dto";
-import { VerifyNamePharmacyDTO } from "./dto/verify-name.dto";
 import { PharmacyController } from "./pharmacy.controller";
 
 @autoInjectable()
@@ -34,11 +33,11 @@ export class PharmacyRouter {
     );
 
     this.router.post(
-      "/admin",
+      "/employee",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
-      StrictValidateBody(assignAdminPharmacyDTO),
-      this.pharmacyController.assignAdminPharmacy,
+      StrictValidateBody(assignEmployeePharmacyDTO),
+      this.pharmacyController.assignEmployeePharmacy,
     );
 
     this.router.get(
@@ -59,10 +58,10 @@ export class PharmacyRouter {
       this.pharmacyController.verifyPharmacyName,
     );
     this.router.get(
-      "/admin/:pharmacyId",
+      "/employee/:pharmacyId",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
-      this.pharmacyController.getAssignedAdmins,
+      this.pharmacyController.getAssignedEmployees,
     );
 
     this.router.get(
@@ -82,10 +81,10 @@ export class PharmacyRouter {
     );
 
     this.router.delete(
-      "/admin/:adminId",
+      "/employee/:employeeId",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
-      this.pharmacyController.unassignAdminPharmacy,
+      this.pharmacyController.unassignEmployeePharmacy,
     );
 
     this.router.delete(

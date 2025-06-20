@@ -1,15 +1,15 @@
-import { Prisma } from "@prisma/client";
+import { AdminRole, Prisma } from "@prisma/client";
 import { injectable } from "tsyringe";
 import { ApiError } from "../../utils/api-error";
-import { generateSlug } from "../../utils/generate-slug";
 import { CloudinaryService } from "../cloudinary/cloudinary.service";
 import { PaginationService } from "../pagination/pagination.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { assignEmployeePharmacyDTO } from "./dto/assignEmployeePharmacy.dto";
 import { CreatePharmacyDTO } from "./dto/create-pharmacy.dto";
 import { GetPharmaciesDTO } from "./dto/get-pharmacies.dto";
 import { UpdatePharmacyDTO } from "./dto/update-pharmacy.dto";
-import { assignAdminPharmacyDTO } from "./dto/assignAdminPharmacy.dto";
 import { VerifyNamePharmacyDTO } from "./dto/verify-name.dto";
+import { GetPharmacyEmployeesDTO } from "./dto/get-pharmacy-employee.dto";
 
 @injectable()
 export class PharmacyService {
@@ -126,7 +126,7 @@ export class PharmacyService {
     };
   };
 
-  public assignAdminPharmacy = async (body: assignAdminPharmacyDTO) => {
+  public assignEmployeePharmacy = async (body: assignEmployeePharmacyDTO) => {
     await this.prisma.$transaction(async (tx) => {
       await this.getPharmacyById(tx, body.pharmacyId, true);
       if (body.adminId.length === 0) {
@@ -183,48 +183,82 @@ export class PharmacyService {
     };
   };
 
-  public unassignAdminPharmacy = async (adminId: string) => {
+  public unassignEmployeePharmacy = async (employeeId: string) => {
+    console.log("Unassigning employee from pharmacy", employeeId);
+    if (!employeeId) {
+      throw new ApiError("Employee ID is required", 400);
+    }
     await this.prisma.$transaction(async (tx) => {
-      const admin = await tx.admin.findUnique({
-        where: { id: adminId },
+      const employee = await tx.admin.findUnique({
+        where: { id: employeeId },
         select: { pharmacyId: true },
       });
-      if (!admin || !admin.pharmacyId) {
+      if (!employee || !employee.pharmacyId) {
         throw new ApiError(
-          "Admin not found or not assigned to a pharmacy",
+          "Employee not found or not assigned to a pharmacy",
           404,
         );
       }
-      const pharmacyAdminNumber = await tx.admin.count({
-        where: { pharmacyId: admin.pharmacyId },
+      const pharmacyEmployeeNumber = await tx.admin.count({
+        where: { pharmacyId: employee.pharmacyId },
       });
-      if (pharmacyAdminNumber <= 1) {
+      if (pharmacyEmployeeNumber <= 1) {
         await tx.pharmacy.update({
-          where: { id: admin.pharmacyId },
+          where: { id: employee.pharmacyId },
           data: { isOpen: false },
         });
       }
       await tx.admin.update({
-        where: { id: adminId },
+        where: { id: employeeId },
         data: { pharmacyId: null },
       });
     });
     return {
-      message: "Pharmacy unassigned from admin successfully",
+      message: "Pharmacy unassigned from employee successfully",
     };
   };
 
-  public getAssignedAdmins = async (pharmacyId: string) => {
+  public getAssignedEmployees = async (
+    pharmacyId: string,
+    query: GetPharmacyEmployeesDTO,
+  ) => {
     const pharmacy = await this.getPharmacyById(this.prisma, pharmacyId, true);
-    const admins = await this.prisma.admin.findMany({
-      where: { pharmacyId: pharmacy.id },
+    const { search, page, take, sortBy, sortOrder, role, all } = query;
+    const where: Prisma.AdminWhereInput = {
+      pharmacyId: pharmacy.id,
+      deleteAt: null,
+    };
+    if (search) {
+      console.log("search", search);
+      where.account = { fullName: { contains: search, mode: "insensitive" } };
+    }
+    if (role && AdminRole[role as keyof typeof AdminRole]) {
+      where.adminRole = role as AdminRole;
+    }
+    let paginationArgs: Prisma.AdminFindManyArgs = {};
+    if (!all) {
+      paginationArgs = {
+        skip: (page - 1) * take,
+        take,
+      };
+    }
+
+    const employees = await this.prisma.admin.findMany({
+      where,
       include: {
         account: true,
       },
+      ...paginationArgs,
     });
+    const count = await this.prisma.admin.count({ where });
     return {
-      data: admins,
-      message: "Assigned admins fetched successfully",
+      data: employees,
+      message: "Assigned employees fetched successfully",
+      meta: this.paginationService.generateMeta({
+        page,
+        take: all ? count : take,
+        count,
+      }),
     };
   };
 
@@ -232,9 +266,9 @@ export class PharmacyService {
     let totalPharmacies = 0;
     let openPharmacies = 0;
     let closedPharmacies = 0;
-    let totalAdmins = 0;
-    let assignedAdmin = 0;
-    let unassignedAdmin = 0;
+    let totalEmployees = 0;
+    let assignedEmployees = 0;
+    let unassignedEmployees = 0;
     const pharmacies = await this.prisma.pharmacy.findMany({
       where: { deletedAt: null },
       include: {
@@ -243,19 +277,23 @@ export class PharmacyService {
         },
       },
     });
+    const employees = await this.prisma.admin.findMany({
+      where: { deleteAt: null, pharmacyId: { equals: null } },
+    });
+    unassignedEmployees = employees.length;
     totalPharmacies = pharmacies.length;
     openPharmacies = pharmacies.filter((p) => p.isOpen).length;
     closedPharmacies = pharmacies.filter((p) => !p.isOpen).length;
-    totalAdmins = pharmacies.reduce((acc, p) => acc + p._count.Admin, 0);
-    assignedAdmin = pharmacies.filter((p) => p._count.Admin > 0).length;
+    assignedEmployees = pharmacies.filter((p) => p._count.Admin > 0).length;
+    totalEmployees = assignedEmployees + unassignedEmployees;
     return {
       data: {
         totalPharmacies,
         openPharmacies,
         closedPharmacies,
-        totalAdmins,
-        assignedAdmin,
-        unassignedAdmin: totalAdmins - assignedAdmin,
+        totalEmployees,
+        assignedEmployees,
+        unassignedEmployees,
       },
       message: "Dashboard pharmacies fetched successfully",
     };
