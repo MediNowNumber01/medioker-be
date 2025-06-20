@@ -10,6 +10,7 @@ import { UpdatePharmacyDTO } from "./dto/update-pharmacy.dto";
 import { VerifyNamePharmacyDTO } from "./dto/verify-name.dto";
 import { PharmacyService } from "./pharmacy.service";
 import { GetPharmacyEmployeesDTO } from "./dto/get-pharmacy-employee.dto";
+import { StrictValidateBody } from "../../middleware/validation.middleware";
 
 @injectable()
 export class PharmacyController {

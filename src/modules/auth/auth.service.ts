@@ -28,6 +28,7 @@ export class AuthService {
 
     const account = await this.prisma.account.findFirst({
       where: { email },
+      include: { User: { include: { user_addresses: true } } },
     });
 
     if (!account) {
@@ -212,43 +213,53 @@ export class AuthService {
 
     const payload = response.data;
     if (!payload.email) throw new ApiError("Invalid google email", 400);
-
     let account = await this.prisma.account.findUnique({
       where: { email: payload.email },
     });
 
-    if (!account) {
-      await this.prisma.$transaction(async (tx) => {
-        account = await tx.account.create({
+    if (account) {
+      if (account.provider !== "GOOGLE") {
+        const x = new ApiError(
+          "Please log in using your credentials.",
+          400,
+        );
+        throw x;
+      }
+    } else {
+      account = await this.prisma.$transaction(async (tx) => {
+        const newAcc = await tx.account.create({
           data: {
             email: payload.email,
             profilePict: payload.picture,
             fullName: payload.name,
             isVerified: true,
             role: "USER",
+            provider: "GOOGLE",
           },
         });
 
         await tx.user.create({
           data: {
-            accountId: account.id,
+            accountId: newAcc.id,
           },
         });
+        return newAcc;
       });
     }
 
     if (!account) {
-      throw new ApiError("Gagal membuat akun", 500);
+      const x = new ApiError("Failed to create or find an account.", 500);
+      console.log(x);
+      throw x;
     }
-
     const { password: pw, ...accountWithoutPassword } = account;
 
     const accessToken = this.tokenService.generateToken(
       {
         id: account.id,
         role: account.role,
-        profilePict: account.profilePict,
         isVerified: account.isVerified,
+        profilePict: account.profilePict,
       },
       env().JWT_SECRET,
       { expiresIn: "48h" },
