@@ -9,6 +9,7 @@ import { AuthRouter } from "./modules/auth/auth.router";
 import { CategoryRouter } from "./modules/category/category.router";
 import { ProductRouter } from "./modules/product/product.router";
 import { PharmacyRouter } from "./modules/pharmacy/pharmacy.router";
+import { AdminRouter } from "./modules/admins/admin.router";
 import { PrescriptionRouter } from "./modules/prescription/prescription.router";
 
 export default class App {
@@ -31,7 +32,8 @@ export default class App {
     const authRouter = container.resolve(AuthRouter);
     const categoryRouter = container.resolve(CategoryRouter);
     const productRouter = container.resolve(ProductRouter);
-    const pharmacyRouter = container.resolve(PharmacyRouter); 
+    const pharmacyRouter = container.resolve(PharmacyRouter); // Resolve the pharmacy router
+    const adminRouter = container.resolve(AdminRouter); // Resolve the admin router
     const prescriptionsRouter = container.resolve(PrescriptionRouter)
 
     this.app.get("/", (_, res) => {
@@ -42,6 +44,7 @@ export default class App {
     this.app.use("/prescriptions", prescriptionsRouter.getRouter())
     this.app.use("/products", productRouter.getRouter());
     this.app.use("/pharmacies", pharmacyRouter.getRouter());
+    this.app.use("/admins", adminRouter.getRouter());
   }
 
   private handleError(): void {
