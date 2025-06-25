@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString } from "class-validator";
 
-export class assignAdminPharmacyDTO {
+export class assignEmployeePharmacyDTO {
   @IsNotEmpty()
   @IsString({ each: true })
   adminId!: string[];
