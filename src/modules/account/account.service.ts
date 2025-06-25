@@ -7,9 +7,11 @@ import { MailService } from "../mail/mail.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { UpdateAccountDTO } from "./dto/update-account.dto";
 import { PasswordService } from "../auth/password.service";
-import { CreateAdminDTO } from "./dto/create-admin";
-import { UpdateAdminDTO } from "./dto/update-admin";
+import { CreateAdminDTO } from "./dto/create-admin.dto";
+import { UpdateAdminDTO } from "./dto/update-admin.dto";
 import { prismaExclude } from "../prisma/utils";
+import { GetAccountsDTO } from "./dto/get-accounts.dto";
+import { Prisma } from "@prisma/client";
 
 @injectable()
 export class AccountService {
@@ -33,30 +35,85 @@ export class AccountService {
 
     return account;
   };
-  getAllAccount = async () => {
-    const account = await this.prisma.account.findMany({
-      where: { deletedAt: null, NOT: { role: "SUPER_ADMIN" } },
-      orderBy: { role: "desc" },
+  getAllAccount = async (query: GetAccountsDTO) => {
+    const { page, sortBy, sortOrder, take, search } = query;
+
+    const whereClause: Prisma.AccountWhereInput = {
+      deletedAt: null,
+      NOT: { role: "SUPER_ADMIN" },
+    };
+
+    const accounts = await this.prisma.account.findMany({
+      where: whereClause,
+      orderBy: { [sortBy]: sortOrder },
+      skip: (page - 1) * take,
+      take,
       select: prismaExclude("Account", ["password"]),
     });
 
-    if (!account) {
+    if (!accounts) {
       throw new ApiError("Accounts not found", 400);
     }
 
-    return account;
+    const count = await this.prisma.account.count({ where: whereClause });
+    return { data: accounts, meta: { page, take, total: count } };
   };
 
-  getAdmin = async () => {
-    const account = await this.prisma.account.findMany({
-      where: { deletedAt: null, role: "ADMIN" },
+  getAdmin = async (query: GetAccountsDTO) => {
+    const { page, sortBy, sortOrder, take, search } = query;
+
+    const whereClause: Prisma.AccountWhereInput = {
+      deletedAt: null,
+      role: "ADMIN",
+    };
+
+    const accounts = await this.prisma.account.findMany({
+      where: whereClause,
+      orderBy: { [sortBy]: sortOrder },
+      skip: (page - 1) * take,
+      take,
+      select: prismaExclude("Account", ["password"]),
     });
 
-    if (!account) {
+    if (!accounts) {
       throw new ApiError("Accounts not found", 400);
     }
 
-    return account;
+    const count = await this.prisma.account.count({ where: whereClause });
+    return { data: accounts, meta: { page, take, total: count } };
+  };
+  getAllUsers = async (query: GetAccountsDTO) => {
+    const { page, sortBy, sortOrder, take, search, isVerified } = query;
+
+    const whereClause: Prisma.AccountWhereInput = {
+      deletedAt: null,
+      role: "USER",
+    };
+
+    if (search) {
+      whereClause.OR = [
+        { fullName: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    if (isVerified) {
+      whereClause.isVerified;
+    }
+
+    const accounts = await this.prisma.account.findMany({
+      where: whereClause,
+      orderBy: { [sortBy]: sortOrder },
+      skip: (page - 1) * take,
+      take,
+      select: prismaExclude("Account", ["password"]),
+    });
+
+    if (!accounts) {
+      throw new ApiError("Accounts not found", 400);
+    }
+
+    const count = await this.prisma.account.count({ where: whereClause });
+    return { data: accounts, meta: { page, take, total: count } };
   };
 
   createAdmin = async (

@@ -3,7 +3,9 @@ import { injectable } from "tsyringe";
 import { ApiError } from "../../utils/api-error";
 import { AccountService } from "./account.service";
 import { UpdateAccountDTO } from "./dto/update-account.dto";
-import { CreateAdminDTO } from "./dto/create-admin";
+import { CreateAdminDTO } from "./dto/create-admin.dto";
+import { plainToInstance } from "class-transformer";
+import { GetAccountsDTO } from "./dto/get-accounts.dto";
 
 @injectable()
 export class accountController {
@@ -61,7 +63,8 @@ export class accountController {
 
   getAllAccount = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await this.accountService.getAllAccount();
+      const query = plainToInstance(GetAccountsDTO, req.query);
+      const result = await this.accountService.getAllAccount(query);
       res.status(200).send(result);
     } catch (error) {
       next(error);
@@ -70,7 +73,17 @@ export class accountController {
 
   getAdmin = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await this.accountService.getAdmin();
+      const query = plainToInstance(GetAccountsDTO, req.query);
+      const result = await this.accountService.getAdmin(query);
+      res.status(200).send(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+  getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = plainToInstance(GetAccountsDTO, req.query);
+      const result = await this.accountService.getAllUsers(query);
       res.status(200).send(result);
     } catch (error) {
       next(error);
