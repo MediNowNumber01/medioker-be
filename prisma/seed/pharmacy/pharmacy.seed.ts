@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 export const pharmaciesSeed = async (prisma: PrismaClient) => {
   const startNumber = 1;
-  const endNumber = 50;
+  const endNumber = 30;
   const data = await prisma.$transaction(async (tx) => {
     const products = await tx.product.findMany({
       select: { id: true },

@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
 export const productCategoriesSeed = async (prisma: PrismaClient) => {
-  const startNumber = 1;
-  const endNumber = 150;
+  const startNumber = 31;
+  const endNumber = 70;
   const data = await prisma.$transaction(async (tx) => {
     const categories = await tx.category.findMany({
       select: { id: true },

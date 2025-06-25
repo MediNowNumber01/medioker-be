@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
 export const ProductImagesSeed = async (prisma: PrismaClient) => {
-  const startNumber = 1;
-  const endNumber = 150;
+  const startNumber = 31;
+  const endNumber = 60;
   const data = await prisma.$transaction(async (tx) => {
     await Promise.all(
       Array.from({ length: endNumber - startNumber + 1 }, (_, idx) => {

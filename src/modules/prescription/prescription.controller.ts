@@ -15,7 +15,7 @@ export class PrescriptionController {
     next: NextFunction,
   ) => {
     try {
-      const { lat, lon } = req.query;
+      const { lat, lon } = req.params;
       const latitude = lat ? parseFloat(lat as string) : undefined;
       const longitude = lon ? parseFloat(lon as string) : undefined;
 
@@ -33,23 +33,6 @@ export class PrescriptionController {
     }
   };
 
-  public getUserAddresses = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        throw new ApiError("User not authenticated", 401);
-      }
-      const result = await this.prescriptionService.getUserAddress(userId);
-      res.status(201).send(result);
-    } catch (error) {
-      next(error);
-    }
-  };
-
   public createPrescriptionOrder = async (
     req: Request,
     res: Response,
@@ -61,6 +44,9 @@ export class PrescriptionController {
         throw new ApiError("User not authenticated", 401);
       }
 
+      if(!req.user?.isVerified === true) {
+        throw new ApiError("User not verified", 401);
+      }
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
       const prescriptionFiles = files.prescriptions;
       if (!prescriptionFiles || prescriptionFiles.length === 0) {

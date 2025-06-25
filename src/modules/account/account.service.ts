@@ -22,6 +22,18 @@ export class AccountService {
     private readonly mailService: MailService,
     private readonly tokenService: TokenService,
   ) {}
+  getAccount = async (id: string) => {
+    const account = await this.prisma.account.findUnique({
+      where: { id },
+      select: prismaExclude("Account", ["password"]),
+    });
+
+    if (!account) {
+      throw new ApiError("Accounts not found", 400);
+    }
+
+    return account;
+  }
 
   getUser = async (authUserId: string) => {
     const account = await this.prisma.account.findUnique({
@@ -35,6 +47,7 @@ export class AccountService {
 
     return account;
   };
+
   getAllAccount = async (query: GetAccountsDTO) => {
     const { page, sortBy, sortOrder, take, search } = query;
 
@@ -301,7 +314,7 @@ export class AccountService {
         });
       });
     } else if (!email) {
-      result = await this.prisma.account.update({
+      return await this.prisma.account.update({
         where: { id: account.id },
         data: {
           fullName: newFullName,
@@ -379,10 +392,10 @@ export class AccountService {
       const { secure_url } = await this.fileService.upload(profilePict);
       profileUrl = secure_url;
     }
-    // let newAdminRole = account.Admin?.adminRole;
-    // if (adminRole) {
-    //   newAdminRole = adminRole;
-    // }
+    let newAdminRole = account.Admin?.adminRole;
+    if (adminRole) {
+      newAdminRole = adminRole;
+    }
 
     let result;
     if (email) {

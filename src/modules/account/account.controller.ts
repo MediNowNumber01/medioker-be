@@ -11,6 +11,19 @@ import { GetAccountsDTO } from "./dto/get-accounts.dto";
 export class accountController {
   constructor(private readonly accountService: AccountService) {}
 
+  getAccount = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId } = req.params;
+      if (!userId) {
+        throw new ApiError("User not authenticated", 401);
+      }
+      const result = await this.accountService.getAccount(userId);
+      res.status(200).send(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = req.user?.id;
@@ -97,6 +110,23 @@ export class accountController {
       const profilePict = files.profilePict?.[0];
       if (!profilePict) throw new ApiError("Profile Picture is required", 400);
       const result = await this.accountService.createAdmin(body, profilePict);
+      res.status(200).send(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      const profilePict = files.profilePict?.[0];
+      const body = req.body as UpdateAccountDTO;
+      const { accountId } = req.params;
+      const result = await this.accountService.updateAdmin(
+        accountId,
+        body,
+        profilePict,
+      );
       res.status(200).send(result);
     } catch (error) {
       next(error);

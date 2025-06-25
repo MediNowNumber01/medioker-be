@@ -34,6 +34,10 @@ export class AuthService {
       throw new ApiError("User not found", 404);
     }
 
+    if (account.provider === "GOOGLE") {
+      throw new ApiError("Please login with your credentials.", 401);
+    }
+
     const isPasswordValid = await this.passwordService.comparePassword(
       password,
       account.password!,
@@ -53,7 +57,7 @@ export class AuthService {
     );
 
     const { password: pw, ...accountWithoutPassword } = account;
-
+    
     return { ...accountWithoutPassword, accessToken };
   };
 
@@ -173,17 +177,24 @@ export class AuthService {
     );
 
     await this.prisma.account.update({
-        where: { id: account.id },
-        data: { verifyToken: token },
-      });
+      where: { id: account.id },
+      data: { verifyToken: token },
+    });
 
-      const verifyLink = `${env().BASE_URL_FE}/verify/${token}`;
-      this.mailService.sendEmail(account.email, "Verify Account", "reverify-account", {
+    const verifyLink = `${env().BASE_URL_FE}/verify/${token}`;
+    this.mailService.sendEmail(
+      account.email,
+      "Verify Account",
+      "reverify-account",
+      {
         fullName: account.fullName,
         email: account.email,
         verificationUrl: verifyLink,
-      });
-      return {message: "Resend verification account success. Please check your email."}
+      },
+    );
+    return {
+      message: "Resend verification account success. Please check your email.",
+    };
   };
 
   resetPassword = async (body: ResetPasswordDTO, authUserId: string) => {
@@ -299,8 +310,8 @@ export class AuthService {
       env().JWT_SECRET,
       { expiresIn: "48h" },
     );
-    console.log(accessToken);
-    
+
+
     return { ...accountWithoutPassword, accessToken };
   };
 }
