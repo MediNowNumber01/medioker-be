@@ -6,7 +6,7 @@ import { env } from "../../config";
 import { verifyRole } from "../../middleware/role.middleware";
 import { fileFilter, uploader } from "../../middleware/uploader.middleware";
 import { validateBody } from "../../middleware/validation.middleware";
-import { CreateAdminDTO } from "./dto/create-admin";
+import { CreateAdminDTO } from "./dto/create-admin.dto";
 
 @autoInjectable()
 export class AccountRouter {
@@ -33,7 +33,13 @@ export class AccountRouter {
       this.accountController.getUser,
     );
     this.router.get(
-      "/get-admin",
+      "/users",
+      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
+      verifyRole(["SUPER_ADMIN"]),
+      this.accountController.getAllUsers,
+    );
+    this.router.get(
+      "/admins",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
       this.accountController.getAdmin,
