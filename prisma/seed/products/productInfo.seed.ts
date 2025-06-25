@@ -2,8 +2,8 @@ import { Acquisition, Golongan, PrismaClient } from "@prisma/client";
 import { generateSlug } from "../../../src/utils/generate-slug";
 
 export const ProductInfoSeed = async (prisma: PrismaClient) => {
-  const startNumber = 1;
-  const endNumber = 150;
+  const startNumber = 31;
+  const endNumber = 70;
   const data = await prisma.$transaction(async (tx) => {
     const acquisitionz: Acquisition[] = ["GENERIK", "HERBAL", "NON_GENERIK"];
     await Promise.all(

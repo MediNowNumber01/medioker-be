@@ -27,9 +27,15 @@ export class AccountRouter {
       this.accountController.getAllAccount,
     );
     this.router.get(
+      "/:id",
+      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
+      verifyRole(["SUPER_ADMIN"]),
+      this.accountController.getAccount,
+    );
+    this.router.get(
       "/user",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      verifyRole(["USER"]),
+      // verifyRole(["USER"]),
       this.accountController.getUser,
     );
     this.router.get(
@@ -40,8 +46,8 @@ export class AccountRouter {
     );
     this.router.get(
       "/admins",
-      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      verifyRole(["SUPER_ADMIN"]),
+      // this.jwtMiddleware.verifyToken(env().JWT_SECRET),
+      // verifyRole(["SUPER_ADMIN"]),
       this.accountController.getAdmin,
     );
     this.router.post(
@@ -78,6 +84,14 @@ export class AccountRouter {
       fileFilter,
       verifyRole(["USER"]),
       this.accountController.updateAccount,
+    );
+    this.router.patch(
+      "/admins/:id",
+      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
+      uploader().fields([{ name: "profilePict", maxCount: 1 }]),
+      fileFilter,
+      verifyRole(["SUPER_ADMIN"]),
+      this.accountController.updateAdmin,
     );
   };
 

@@ -9,12 +9,12 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log("Start seeding ...");
-  // await productSeed(prisma);
-  // await productStocksSeed(prisma);
+  await productSeed(prisma);
+  await productStocksSeed(prisma);
   // await categoriesSeed(prisma);
-  // await productCategoriesSeed(prisma);
-  // await ProductUnitsSeed(prisma);
-  await pharmaciesSeed(prisma);
+  await productCategoriesSeed(prisma);
+  await ProductUnitsSeed(prisma);
+  // await pharmaciesSeed(prisma);
   console.log("Seeding finished.");
 }
 

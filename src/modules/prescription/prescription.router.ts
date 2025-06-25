@@ -26,13 +26,6 @@ export class PrescriptionRouter {
       verifyRole(["USER"]),
       this.prescriptionController.getPharmacies,
     );
-    this.router.get(
-      "/addresses",
-      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      verifyRole(["USER"]),
-      this.prescriptionController.getUserAddresses,
-    );
-
     this.router.post(
       "/",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),

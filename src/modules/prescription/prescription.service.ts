@@ -1,4 +1,4 @@
-import { Pharmacy, UserAddresses } from "@prisma/client";
+import { Pharmacy, Prisma, UserAddresses } from "@prisma/client";
 import { injectable } from "tsyringe";
 import { ApiError } from "../../utils/api-error";
 import { CloudinaryService } from "../cloudinary/cloudinary.service";
@@ -7,6 +7,7 @@ import {
   CreatePrescriptionOrderDTO,
   PrescriptionOrderType,
 } from "./dto/prescription.dto";
+import { Status } from "../../types/status";
 
 @injectable()
 export class PrescriptionService {
@@ -21,7 +22,7 @@ export class PrescriptionService {
     lat2: number,
     lon2: number,
   ): number {
-    const R = 6371; // Radius bumi dalam km
+    const R = 6371;
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
     const a =
@@ -70,22 +71,6 @@ export class PrescriptionService {
     return [...nearbyPharmacies, ...farPharmacies];
   }
 
-  public async getUserAddress(accountId: string) {
-    const account = await this.prisma.account.findUnique({
-      where: { id: accountId }, include: {User: true}
-    });
-
-    if (!account) {
-      throw new ApiError("user not found", 400);
-    }
-
-    const userAddresses = await this.prisma.userAddresses.findMany({
-      where: { userId: account.User!.id },
-    });
-
-    return userAddresses
-  }
-
   public async createPrescriptionOrder(
     accountId: string,
     dto: CreatePrescriptionOrderDTO,
@@ -115,7 +100,9 @@ export class PrescriptionService {
 
       let deliveryPrice = 0;
       let deliveryDetails: UserAddresses | null = null;
+      let pickupCode: string | undefined = undefined;
 
+      let orderStatus: Status = Status.RECIPT_CONFIRMATION;
       if (dto.orderType === PrescriptionOrderType.DELIVERY) {
         if (!dto.userAddressId) {
           throw new ApiError(
@@ -139,18 +126,22 @@ export class PrescriptionService {
           parseFloat(deliveryDetails.longitude),
         );
         deliveryPrice = Math.round(distance * 1000);
+      } else if (dto.orderType === PrescriptionOrderType.PICKUP) {
+        pickupCode = `MDNW-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        orderStatus = Status.RECIPT_CONFIRMATION;
       }
 
       const newOrder = await tx.order.create({
         data: {
           userId: user.id,
           pharmacyId: dto.pharmacyId,
-          status: "RECIPT_CONFIRMATION",
+          status: orderStatus,
           orderType: "PRESCRIPTION",
           note: dto.note,
           productPrice: "0",
           deliveryPrice: deliveryPrice,
           totalPrice: deliveryPrice,
+          pickupCode: pickupCode,
         },
       });
 
