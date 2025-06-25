@@ -78,7 +78,7 @@ export class AuthController {
       if (!token) throw new Error("Token tidak valid");
 
       const result = await this.authService.googleLogin(token);
-      res.status(200).json(result);
+      res.status(200).send(result);
     } catch (error) {
       next(error);
     }
@@ -95,8 +95,36 @@ export class AuthController {
 
       res.status(200).send({ message: "Token is valid" });
     } catch (error) {
-      // Jika verifyTokenLogic melempar error, `next(error)` akan menanganinya
-      // dan mengirim respons error (misal: 401 Unauthorized)
+      next(error);
+    }
+  };
+
+  resendVerify = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+     const accountId = req.user?.id;
+
+      if (!accountId) {
+        throw new ApiError("Account ID not found in token", 400);
+      }
+      const result= this.authService.resendVerification(accountId);
+
+      res.status(200).send(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  verifyAccountToken = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const { token } = req.params;
+      this.tokenService.verifyToken(token, env().JWT_SECRET_VERIFY!);
+
+      res.status(200).send({ message: "Token is valid" });
+    } catch (error) {
       next(error);
     }
   };

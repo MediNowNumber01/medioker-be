@@ -16,8 +16,8 @@ export const pharmaciesSeed = async (prisma: PrismaClient) => {
             name: `Pharmacy ${i}`,
             isOpen: i < 40,
             picture: `https://res.cloudinary.com/ddaktz2rj/image/upload/v1749816236/ct2uztzywmsqusgvsdi7.png`,
-            description: `Description for Pharmacy ${i}`,
-            slug: `pharmacy-${i}`,
+            // description: `Description for Pharmacy ${i}`,
+            // slug: `pharmacy-${i}`,
             detailLocation: `Detail location for Pharmacy ${i}`,
             lat: (Math.random() * 180 - 90).toString(), // Random latitude between -90 and 90
             lng: (Math.random() * 360 - 180).toString(), // Random longitude between -180 and 180

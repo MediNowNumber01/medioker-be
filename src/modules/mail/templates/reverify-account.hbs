@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Password Reset Request - MediNow</title>
+    <title>Re-confirm Your Email Address - MediNow</title>
     <!--[if mso]>
       <noscript>
         <xml>
@@ -95,35 +95,47 @@
         line-height: 1.7;
       }
 
+      .highlight-message {
+        font-size: 16px;
+        color: #dc2626;
+        margin-bottom: 32px;
+        line-height: 1.7;
+        font-weight: 600;
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        padding: 16px;
+        border-radius: 8px;
+        border-left: 4px solid #dc2626;
+      }
+
       /* Button */
       .button-container {
         text-align: center;
         margin: 40px 0;
       }
 
-      .reset-button {
+      .verification-button {
         display: inline-block;
-        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
         color: #ffffff !important;
         text-decoration: none;
         padding: 16px 32px;
         border-radius: 8px;
         font-weight: 600;
         font-size: 16px;
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
         transition: all 0.3s ease;
       }
 
-      .reset-button:hover {
-        background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
-        box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+      .verification-button:hover {
+        background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+        box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
         transform: translateY(-1px);
       }
 
       /* Info boxes */
       .info-box {
-        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-        border-left: 4px solid #3b82f6;
+        background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+        border-left: 4px solid #7c3aed;
         padding: 20px;
         margin: 24px 0;
         border-radius: 0 8px 8px 0;
@@ -131,12 +143,12 @@
 
       .info-box-title {
         font-weight: 600;
-        color: #1e40af;
+        color: #5b21b6;
         margin-bottom: 8px;
       }
 
       .info-box-text {
-        color: #1e40af;
+        color: #5b21b6;
         font-size: 14px;
         margin: 0;
       }
@@ -162,9 +174,9 @@
       }
 
       .security-box {
-        background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
-        border: 1px solid #ef4444;
-        color: #991b1b;
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #10b981;
+        color: #065f46;
         padding: 20px;
         border-radius: 8px;
         margin: 24px 0;
@@ -193,7 +205,7 @@
       .url-text {
         font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
         font-size: 13px;
-        color: #dc2626;
+        color: #7c3aed;
         word-break: break-all;
         margin: 0;
         line-height: 1.5;
@@ -233,7 +245,7 @@
           font-size: 24px !important;
         }
 
-        .reset-button {
+        .verification-button {
           display: block !important;
           width: 100% !important;
           box-sizing: border-box;
@@ -242,6 +254,10 @@
 
         .info-box, .warning-box, .security-box {
           padding: 16px !important;
+        }
+
+        .highlight-message {
+          padding: 12px !important;
         }
       }
 
@@ -276,8 +292,8 @@
             <path d="M72.1452 20H68.0412L61.1772 9.608V20H57.0732V3.152H61.1772L68.0412 13.592V3.152H72.1452V20ZM80.266 20.192C78.954 20.192 77.77 19.912 76.714 19.352C75.674 18.792 74.85 17.992 74.242 16.952C73.65 15.912 73.354 14.696 73.354 13.304C73.354 11.928 73.658 10.72 74.266 9.68C74.874 8.624 75.706 7.816 76.762 7.256C77.818 6.696 79.002 6.416 80.314 6.416C81.626 6.416 82.82 6.696 83.866 7.256C84.922 7.816 85.754 8.624 86.362 9.68C86.97 10.72 87.274 11.928 87.274 13.304C87.274 14.68 86.962 15.896 86.338 16.952C85.73 17.992 84.89 18.792 83.818 19.352C82.762 19.912 81.578 20.192 80.266 20.192ZM80.266 16.64C81.05 16.64 81.714 16.352 82.258 15.776C82.818 15.2 83.098 14.376 83.098 13.304C83.098 12.232 82.826 11.408 82.282 10.832C81.754 10.256 81.098 9.968 80.314 9.968C79.514 9.968 78.85 10.256 78.322 10.832C77.794 11.392 77.53 12.216 77.53 13.304C77.53 14.376 77.786 15.2 78.298 15.776C78.826 16.352 79.482 16.64 80.266 16.64ZM107.725 6.608L104.101 20H99.5653L97.4533 11.312L95.2693 20H90.7573L87.1093 6.608H91.2133L93.1093 16.184L95.3653 6.608H99.7093L101.989 16.136L103.861 6.608H107.725Z" fill="#ffffff"/>
           </svg>
         </div>
-        <h1 class="header-title">Password Reset Request</h1>
-        <p class="header-subtitle">Secure your MediNow account</p>
+        <h1 class="header-title">Re-confirm Your Email Address</h1>
+        <p class="header-subtitle">New verification link for your MediNow account</p>
       </div>
 
       <!-- Content -->
@@ -285,66 +301,71 @@
         <p class="greeting">Hello <strong>{{fullName}}</strong>,</p>
 
         <p class="message">
-          We received a request to reset the password for your MediNow account. 
-          If you made this request, please click the button below to create a new password.
+          We received a request to resend the verification email for your MediNow account. 
+          This new verification link will replace any previous ones we've sent.
         </p>
 
+        <div class="highlight-message">
+          <strong>📧 Important:</strong> The verification link we sent previously is no longer valid. 
+          Please use the new link below to activate your account.
+        </div>
+
         <div class="button-container">
-          <a href="{{resetLink}}" class="reset-button">
-            Reset My Password
+          <a href="{{verificationUrl}}" class="verification-button">
+            Re-verify My Email Address
           </a>
         </div>
 
         <div class="info-box">
-          <div class="info-box-title">What happens next?</div>
+          <div class="info-box-title">Why am I receiving this email?</div>
           <p class="info-box-text">
-            Clicking the button will take you to a secure page where you can create a new password. 
-            Make sure to choose a strong password that you haven't used before.
+            You (or someone with access to your account) requested a new verification email. 
+            This ensures you can complete your MediNow registration and access all features.
           </p>
         </div>
 
         <div class="security-box">
-          <div class="security-title">🔒 Security Notice</div>
+          <div class="security-title">🔒 Account Security</div>
           <p class="security-text">
-            If you did not request a password reset, please ignore this email and your password will remain unchanged. 
-            Your account security is important to us.
+            If you did not request this email verification, please ignore this message. 
+            Your account remains secure and no action is required.
           </p>
         </div>
 
         <div class="warning-box">
           <div class="warning-title">⏰ Time Sensitive</div>
           <p class="warning-text">
-            This password reset link will expire in <strong>{{expiryTime}} hours</strong> for security reasons. 
-            If the link expires, you'll need to request a new password reset.
+            This verification link is valid for <strong>1 hour only</strong> and can be used just once. 
+            If it expires, you'll need to request another verification email.
           </p>
         </div>
 
         <p class="message">
-          If the reset button doesn't work, you can copy and paste the following URL into your browser:
+          If the verification button doesn't work, you can copy and paste the following URL into your browser:
         </p>
 
         <div class="url-container">
-          <p class="url-text">{{resetLink}}</p>
+          <p class="url-text">{{verificationUrl}}</p>
         </div>
 
         <p class="message">
-          Having trouble? Contact our support team at 
-          <a href="mailto:support@medinow.com" style="color: #dc2626; text-decoration: none;">support@medinow.com</a> 
-          and we'll help you regain access to your account.
+          Questions about your account? Contact our support team at 
+          <a href="mailto:support@medinow.com" style="color: #7c3aed; text-decoration: none;">support@medinow.com</a> 
+          and we'll be happy to help.
         </p>
       </div>
 
       <!-- Footer -->
       <div class="footer">
         <p class="footer-text">
-          This password reset was requested for the account associated with <strong>{{email}}</strong>
+          This verification email was sent to <strong>{{email}}</strong>
         </p>
         <p class="footer-text">
-          For your security, this link can only be used once and will expire automatically.
+          You're receiving this because you requested a new verification link for your MediNow account.
         </p>
         <p class="footer-small">
           © 2025 MediNow. All rights reserved.<br>
-          This is an automated security message, please do not reply to this email.
+          This is an automated message, please do not reply to this email.
         </p>
       </div>
     </div>

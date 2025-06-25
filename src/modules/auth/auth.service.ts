@@ -28,7 +28,6 @@ export class AuthService {
 
     const account = await this.prisma.account.findFirst({
       where: { email },
-      include: { User: { include: { user_addresses: true } } },
     });
 
     if (!account) {
@@ -63,7 +62,7 @@ export class AuthService {
     try {
       decoded = await this.tokenService.verifyToken(
         token,
-        env().JWT_SECRET_FORGOT_PASSWORD!,
+        env().JWT_SECRET_VERIFY!,
       );
     } catch (error) {
       throw new ApiError("Invalid or expired token", 400);
@@ -129,11 +128,16 @@ export class AuthService {
 
       const token = this.tokenService.generateToken(
         { id: newAcc.id },
-        env().JWT_SECRET_FORGOT_PASSWORD!,
+        env().JWT_SECRET_VERIFY!,
         { expiresIn: "1h" },
       );
 
-      const verifyLink = `${env().BASE_URL_FE}/reset-password/${token}`;
+      await tx.account.update({
+        where: { id: newAcc.id },
+        data: { verifyToken: token },
+      });
+
+      const verifyLink = `${env().BASE_URL_FE}/verify/${token}`;
 
       this.mailService.sendEmail(email, "Verify Account", "verify-account", {
         fullName,
@@ -151,6 +155,35 @@ export class AuthService {
     });
 
     return result;
+  };
+
+  resendVerification = async (authUserId: string) => {
+    const account = await this.prisma.account.findUnique({
+      where: { id: authUserId },
+    });
+
+    if (!account) {
+      throw new ApiError("account not found", 400);
+    }
+
+    const token = this.tokenService.generateToken(
+      { id: account.id },
+      env().JWT_SECRET_VERIFY!,
+      { expiresIn: "1h" },
+    );
+
+    await this.prisma.account.update({
+        where: { id: account.id },
+        data: { verifyToken: token },
+      });
+
+      const verifyLink = `${env().BASE_URL_FE}/verify/${token}`;
+      this.mailService.sendEmail(account.email, "Verify Account", "reverify-account", {
+        fullName: account.fullName,
+        email: account.email,
+        verificationUrl: verifyLink,
+      });
+      return {message: "Resend verification account success. Please check your email."}
   };
 
   resetPassword = async (body: ResetPasswordDTO, authUserId: string) => {
@@ -212,18 +245,18 @@ export class AuthService {
     );
 
     const payload = response.data;
-    if (!payload.email) throw new ApiError("Invalid google email", 400);
+    if (!payload.email) {
+      console.log("invalid email", payload);
+
+      throw new ApiError("Invalid google email", 404);
+    }
     let account = await this.prisma.account.findUnique({
       where: { email: payload.email },
     });
 
     if (account) {
       if (account.provider !== "GOOGLE") {
-        const x = new ApiError(
-          "Please log in using your credentials.",
-          400,
-        );
-        throw x;
+        throw new ApiError("Please log in using your credentials.", 401);
       }
     } else {
       account = await this.prisma.$transaction(async (tx) => {
@@ -248,10 +281,11 @@ export class AuthService {
     }
 
     if (!account) {
-      const x = new ApiError("Failed to create or find an account.", 500);
+      const x = new ApiError("Failed to create or find an account.", 409);
       console.log(x);
       throw x;
     }
+
     const { password: pw, ...accountWithoutPassword } = account;
 
     const accessToken = this.tokenService.generateToken(
@@ -260,11 +294,11 @@ export class AuthService {
         role: account.role,
         isVerified: account.isVerified,
         profilePict: account.profilePict,
+        createdAt: account.createdAt,
       },
       env().JWT_SECRET,
       { expiresIn: "48h" },
     );
-
     return { ...accountWithoutPassword, accessToken };
   };
 }

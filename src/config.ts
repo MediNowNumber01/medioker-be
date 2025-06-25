@@ -22,6 +22,10 @@ class EnvConfig {
   @IsNotEmpty()
   @IsString()
   readonly JWT_SECRET_FORGOT_PASSWORD!: string;
+  
+  @IsNotEmpty()
+  @IsString()
+  readonly JWT_SECRET_VERIFY!: string;
 
   @IsNotEmpty()
   @IsString()

@@ -1,68 +1,322 @@
-<html lang="id">
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Verifikasi Email Anda</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Verify Your Email Address - MediNow</title>
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
     <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-      Oxygen, Ubuntu, Cantarell, sans-serif; line-height: 1.6; color: #333;
-      max-width: 600px; margin: 0 auto; padding: 20px; background-color:
-      #f4f4f4; } .container { background-color: #ffffff; padding: 30px;
-      border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); } .header {
-      text-align: center; margin-bottom: 30px; } h1 { color: #2c3e50;
-      margin-bottom: 20px; font-size: 24px; } .verification-button { display:
-      inline-block; background-color: #27ae60; color: white; padding: 15px 30px;
-      text-decoration: none; border-radius: 5px; font-weight: bold; margin: 25px
-      0; font-size: 16px; transition: background-color 0.3s; }
-      .verification-button:hover { background-color: #229954; } .info-box {
-      background-color: #e8f4fd; border-left: 4px solid #3498db; padding: 15px;
-      margin: 20px 0; border-radius: 0 5px 5px 0; } .warning { background-color:
-      #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px;
-      border-radius: 5px; margin: 20px 0; } .footer { margin-top: 30px;
-      padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color:
-      #666; text-align: center; } @media (max-width: 600px) { body { padding:
-      10px; } .container { padding: 20px; } .verification-button { display:
-      block; text-align: center; padding: 12px 20px; } }
+      /* Reset styles */
+      body, table, td, p, a, li, blockquote {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      table, td {
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+      img {
+        -ms-interpolation-mode: bicubic;
+        border: 0;
+        height: auto;
+        line-height: 100%;
+        outline: none;
+        text-decoration: none;
+      }
+
+      /* Base styles */
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: #f8fafc;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        line-height: 1.6;
+        color: #334155;
+      }
+
+      /* Container */
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+      }
+
+      /* Header */
+      .header {
+        background: linear-gradient(135deg, #0083D9 0%, #DF2222 100%);
+        padding: 40px 30px;
+        text-align: center;
+      }
+
+      .logo {
+        margin-bottom: 20px;
+      }
+
+      .header-title {
+        color: #ffffff;
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .header-subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 16px;
+        margin: 8px 0 0 0;
+        font-weight: 400;
+      }
+
+      /* Content */
+      .content {
+        padding: 40px 30px;
+      }
+
+      .greeting {
+        font-size: 18px;
+        color: #1e293b;
+        margin-bottom: 24px;
+        font-weight: 600;
+      }
+
+      .message {
+        font-size: 16px;
+        color: #475569;
+        margin-bottom: 32px;
+        line-height: 1.7;
+      }
+
+      /* Button */
+      .button-container {
+        text-align: center;
+        margin: 40px 0;
+      }
+
+      .verification-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff !important;
+        text-decoration: none;
+        padding: 16px 32px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .verification-button:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        transform: translateY(-1px);
+      }
+
+      /* Info boxes */
+      .info-box {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        border-left: 4px solid #3b82f6;
+        padding: 20px;
+        margin: 24px 0;
+        border-radius: 0 8px 8px 0;
+      }
+
+      .info-box-title {
+        font-weight: 600;
+        color: #1e40af;
+        margin-bottom: 8px;
+      }
+
+      .info-box-text {
+        color: #1e40af;
+        font-size: 14px;
+        margin: 0;
+      }
+
+      .warning-box {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1px solid #f59e0b;
+        color: #92400e;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 24px 0;
+      }
+
+      .warning-title {
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .warning-text {
+        font-size: 14px;
+        margin: 0;
+        line-height: 1.6;
+      }
+
+      /* URL display */
+      .url-container {
+        background-color: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 20px 0;
+      }
+
+      .url-text {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 13px;
+        color: #3b82f6;
+        word-break: break-all;
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      /* Footer */
+      .footer {
+        background-color: #f8fafc;
+        padding: 30px;
+        text-align: center;
+        border-top: 1px solid #e2e8f0;
+      }
+
+      .footer-text {
+        font-size: 14px;
+        color: #64748b;
+        margin: 0 0 12px 0;
+      }
+
+      .footer-small {
+        font-size: 12px;
+        color: #94a3b8;
+        margin: 0;
+      }
+
+      /* Responsive */
+      @media only screen and (max-width: 600px) {
+        .email-container {
+          width: 100% !important;
+        }
+        
+        .header, .content, .footer {
+          padding: 30px 20px !important;
+        }
+
+        .header-title {
+          font-size: 24px !important;
+        }
+
+        .verification-button {
+          display: block !important;
+          width: 100% !important;
+          box-sizing: border-box;
+          padding: 16px 20px !important;
+        }
+
+        .info-box, .warning-box {
+          padding: 16px !important;
+        }
+      }
+
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        .email-container {
+          background-color: #1e293b !important;
+        }
+        
+        .content {
+          color: #e2e8f0 !important;
+        }
+        
+        .greeting {
+          color: #f1f5f9 !important;
+        }
+        
+        .message {
+          color: #cbd5e1 !important;
+        }
+      }
     </style>
   </head>
   <body>
-    <div class="container">
+    <div class="email-container">
+      <!-- Header -->
       <div class="header">
-        <h1>Verifikasi Email Anda</h1>
+        <div class="logo">
+          <!-- Inline SVG for better email client compatibility -->
+          <svg width="108" height="21" viewBox="0 0 108 21" style="display: block; margin: 0 auto;">
+            <path d="M19.7657 3.152V20H15.6617V9.896L11.8937 20H8.58166L4.78965 9.872V20H0.685655V3.152H5.53365L10.2617 14.816L14.9417 3.152H19.7657ZM34.3909 13.088C34.3909 13.472 34.3669 13.872 34.3189 14.288H25.0309C25.0949 15.12 25.3589 15.76 25.8229 16.208C26.3029 16.64 26.8869 16.856 27.5749 16.856C28.5989 16.856 29.3109 16.424 29.7109 15.56H34.0789C33.8549 16.44 33.4469 17.232 32.8549 17.936C32.2789 18.64 31.5509 19.192 30.6709 19.592C29.7909 19.992 28.8069 20.192 27.7189 20.192C26.4069 20.192 25.2389 19.912 24.2149 19.352C23.1909 18.792 22.3909 17.992 21.8149 16.952C21.2389 15.912 20.9509 14.696 20.9509 13.304C20.9509 11.912 21.2309 10.696 21.7909 9.656C22.3669 8.616 23.1669 7.816 24.1909 7.256C25.2149 6.696 26.3909 6.416 27.7189 6.416C29.0149 6.416 30.1669 6.688 31.1749 7.232C32.1829 7.776 32.9669 8.552 33.5269 9.56C34.1029 10.568 34.3909 11.744 34.3909 13.088ZM30.1909 12.008C30.1909 11.304 29.9509 10.744 29.4709 10.328C28.9909 9.912 28.3909 9.704 27.6709 9.704C26.9829 9.704 26.3989 9.904 25.9189 10.304C25.4549 10.704 25.1669 11.272 25.0549 12.008H30.1909ZM34.79 13.28C34.79 11.904 35.046 10.696 35.558 9.656C36.086 8.616 36.798 7.816 37.694 7.256C38.59 6.696 39.59 6.416 40.694 6.416C41.574 6.416 42.374 6.6 43.094 6.968C43.83 7.336 44.406 7.832 44.822 8.456V2.24H48.926V20H44.822V18.08C44.438 18.72 43.886 19.232 43.166 19.616C42.462 20 41.638 20.192 40.694 20.192C39.59 20.192 38.59 19.912 37.694 19.352C36.798 18.776 36.086 17.968 35.558 16.928C35.046 15.872 34.79 14.656 34.79 13.28ZM44.822 13.304C44.822 12.28 44.534 11.472 43.958 10.88C43.398 10.288 42.71 9.992 41.894 9.992C41.078 9.992 40.382 10.288 39.806 10.88C39.246 11.456 38.966 12.256 38.966 13.28C38.966 14.304 39.246 15.12 39.806 15.728C40.382 16.32 41.078 16.616 41.894 16.616C42.71 16.616 43.398 16.32 43.958 15.728C44.534 15.136 44.822 14.328 44.822 13.304ZM53.009 5.216C52.289 5.216 51.697 5.008 51.233 4.592C50.785 4.16 50.561 3.632 50.561 3.008C50.561 2.368 50.785 1.84 51.233 1.424C51.697 0.991999 52.289 0.775999 53.009 0.775999C53.713 0.775999 54.289 0.991999 54.737 1.424C55.201 1.84 55.433 2.368 55.433 3.008C55.433 3.632 55.201 4.16 54.737 4.592C54.289 5.008 53.713 5.216 53.009 5.216ZM55.049 6.608V20H50.945V6.608H55.049Z" fill="#ffffff"/>
+            <path d="M72.1452 20H68.0412L61.1772 9.608V20H57.0732V3.152H61.1772L68.0412 13.592V3.152H72.1452V20ZM80.266 20.192C78.954 20.192 77.77 19.912 76.714 19.352C75.674 18.792 74.85 17.992 74.242 16.952C73.65 15.912 73.354 14.696 73.354 13.304C73.354 11.928 73.658 10.72 74.266 9.68C74.874 8.624 75.706 7.816 76.762 7.256C77.818 6.696 79.002 6.416 80.314 6.416C81.626 6.416 82.82 6.696 83.866 7.256C84.922 7.816 85.754 8.624 86.362 9.68C86.97 10.72 87.274 11.928 87.274 13.304C87.274 14.68 86.962 15.896 86.338 16.952C85.73 17.992 84.89 18.792 83.818 19.352C82.762 19.912 81.578 20.192 80.266 20.192ZM80.266 16.64C81.05 16.64 81.714 16.352 82.258 15.776C82.818 15.2 83.098 14.376 83.098 13.304C83.098 12.232 82.826 11.408 82.282 10.832C81.754 10.256 81.098 9.968 80.314 9.968C79.514 9.968 78.85 10.256 78.322 10.832C77.794 11.392 77.53 12.216 77.53 13.304C77.53 14.376 77.786 15.2 78.298 15.776C78.826 16.352 79.482 16.64 80.266 16.64ZM107.725 6.608L104.101 20H99.5653L97.4533 11.312L95.2693 20H90.7573L87.1093 6.608H91.2133L93.1093 16.184L95.3653 6.608H99.7093L101.989 16.136L103.861 6.608H107.725Z" fill="#ffffff"/>
+          </svg>
+        </div>
+        <h1 class="header-title">Verify Your Email Address</h1>
+        <p class="header-subtitle">Complete your MediNow registration</p>
       </div>
 
-      <p>Halo <strong>{{fullName}}</strong>,</p>
+      <!-- Content -->
+      <div class="content">
+        <p class="greeting">Hello <strong>{{fullName}}</strong>,</p>
 
-      <p>Terima kasih telah mendaftar! Untuk mengaktifkan akun Anda, silakan
-        klik tombol verifikasi di bawah ini:</p>
+        <p class="message">
+          Welcome to MediNow! We're excited to have you join our healthcare community. 
+          To complete your registration and activate your account, please verify your email address by clicking the button below.
+        </p>
 
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="{{verificationUrl}}" class="verification-button">Verifikasi
-          Email Saya</a>
+        <div class="button-container">
+          <a href="{{verificationUrl}}" class="verification-button">
+            Verify My Email Address
+          </a>
+        </div>
+
+        <div class="info-box">
+          <div class="info-box-title">What happens after verification?</div>
+          <p class="info-box-text">
+            Once verified, you'll have full access to browse medicines, participate in health forums, 
+            and enjoy all the features MediNow has to offer.
+          </p>
+        </div>
+
+        <div class="warning-box">
+          <div class="warning-title">⚠️ Important Security Notice</div>
+          <p class="warning-text">
+            If you did not create a MediNow account, please ignore this email. 
+            This verification link is valid for 24 hours and can only be used once. 
+            For your security, never share this link with others.
+          </p>
+        </div>
+
+        <p class="message">
+          If the verification button doesn't work, you can copy and paste the following URL into your browser:
+        </p>
+
+        <div class="url-container">
+          <p class="url-text">{{verificationUrl}}</p>
+        </div>
+
+        <p class="message">
+          Need help? Contact our support team at 
+          <a href="mailto:support@medinow.com" style="color: #3b82f6; text-decoration: none;">support@medinow.com</a>
+        </p>
       </div>
 
-      <div class="info-box">
-        <strong>Apa yang terjadi setelah verifikasi?</strong><br />
-        Akun Anda akan diaktifkan dan Anda dapat menggunakan semua fitur yang
-        tersedia.
-      </div>
-
-      <div class="warning">
-        <strong>Penting:</strong>
-        Jika Anda tidak mendaftar untuk akun ini, abaikan email ini. Link
-        verifikasi ini hanya berlaku sekali dan akan kedaluwarsa dalam 24 jam.
-      </div>
-
-      <p>Jika tombol di atas tidak berfungsi, salin dan tempel URL berikut ke
-        browser Anda:</p>
-      <p
-        style="word-break: break-all; color: #3498db; background-color: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace;"
-      >{{verificationUrl}}</p>
-
+      <!-- Footer -->
       <div class="footer">
-        <p>Email ini dikirim ke <strong>{{email}}</strong></p>
-        <p style="font-size: 12px; color: #999; margin-top: 15px;">
-          © 2025 - Sistem otomatis, jangan balas email ini.
+        <p class="footer-text">
+          This email was sent to <strong>{{email}}</strong>
+        </p>
+        <p class="footer-text">
+          You're receiving this because you signed up for a MediNow account.
+        </p>
+        <p class="footer-small">
+          © 2025 MediNow. All rights reserved.<br>
+          This is an automated message, please do not reply to this email.
         </p>
       </div>
     </div>

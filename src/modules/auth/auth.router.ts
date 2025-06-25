@@ -22,6 +22,19 @@ export class AuthRouter {
   }
 
   private initializeRoutes = (): void => {
+    this.router.get(
+      "/verify-reset-token/:token",
+      this.authController.verifyResetToken, 
+    );
+    this.router.get(
+      "/verify-account-token/:token",
+      this.authController.verifyAccountToken, 
+    );
+    this.router.post(
+      "/resend-verification",
+      this.jwtMiddleware.verifyToken(env().JWT_SECRET!),
+      this.authController.resendVerify,
+    );
     this.router.post(
       "/login",
       validateBody(LoginDTO),
@@ -47,10 +60,8 @@ export class AuthRouter {
       validateBody(ResetPasswordDTO),
       this.authController.resetPassword,
     );
-    this.router.get(
-      "/verify-reset-token/:token",
-      this.authController.verifyResetToken, 
-    );
+    
+    
   };
 
   getRouter(): Router {

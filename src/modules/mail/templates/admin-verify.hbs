@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Account Verification - MediNow</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8fafc;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        }
+        
+        .logo {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo svg {
+            width: 120px;
+            height: auto;
+            filter: brightness(0) invert(1);
+        }
+        
+        .header-title {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 20px 0 10px 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header-subtitle {
+            color: #e0e7ff;
+            font-size: 16px;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+        }
+        
+        .admin-badge::before {
+            content: '👑';
+            margin-right: 6px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            font-size: 16px;
+            color: #4b5563;
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+        
+        .admin-info {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        
+        .admin-info h3 {
+            margin: 0 0 15px 0;
+            color: #1f2937;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .admin-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .admin-detail:last-child {
+            border-bottom: none;
+        }
+        
+        .admin-detail-label {
+            font-weight: 600;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .admin-detail-value {
+            color: #1f2937;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .verify-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(5, 150, 105, 0.2);
+        }
+        
+        .verify-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(5, 150, 105, 0.3);
+        }
+        
+        .security-notice {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 25px 0;
+        }
+        
+        .security-notice h4 {
+            margin: 0 0 8px 0;
+            color: #92400e;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        
+        .security-notice h4::before {
+            content: '🔒';
+            margin-right: 8px;
+        }
+        
+        .security-notice p {
+            margin: 0;
+            color: #92400e;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .footer-text {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0 0 15px 0;
+        }
+        
+        .footer-links {
+            margin: 15px 0;
+        }
+        
+        .footer-links a {
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 13px;
+            margin: 0 15px;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .copyright {
+            color: #9ca3af;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        
+        .url-fallback {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #4b5563;
+            word-break: break-all;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .footer {
+                padding: 25px 20px;
+            }
+            
+            .header-title {
+                font-size: 24px;
+            }
+            
+            .verify-button {
+                display: block;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .admin-detail {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <!-- MediNow Logo SVG -->
+                <svg viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+                    <text x="10" y="25" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white">MediNow</text>
+                </svg>
+            </div>
+            <h1 class="header-title">Admin Account Verification</h1>
+            <p class="header-subtitle">Secure access to administrative dashboard</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="admin-badge">Admin Account</div>
+            
+            <div class="greeting">Hello {{fullName}},</div>
+            
+            <div class="message">
+                A Super Administrator has created an admin account for you on the MediNow platform. To complete your account setup and gain access to the administrative dashboard, please verify your email address.
+            </div>
+
+            <!-- Admin Account Information -->
+            <div class="admin-info">
+                <h3>Account Details</h3>
+                <div class="admin-detail">
+                    <span class="admin-detail-label">Full Name:</span>
+                    <span class="admin-detail-value">{{fullName}}</span>
+                </div>
+                <div class="admin-detail">
+                    <span class="admin-detail-label">Email Address:</span>
+                    <span class="admin-detail-value">{{email}}</span>
+                </div>
+                <div class="admin-detail">
+                    <span class="admin-detail-label">Account Type:</span>
+                    <span class="admin-detail-value">Administrator</span>
+                </div>
+                <div class="admin-detail">
+                    <span class="admin-detail-label">Admin Role:</span>
+                    <span class="admin-detail-value">{{adminRole}}</span>
+                </div>
+            </div>
+
+            <!-- Verification Button -->
+            <div style="text-align: center;">
+                <a href="{{verificationUrl}}" class="verify-button">Verify Admin Account</a>
+            </div>
+
+            <!-- URL Fallback -->
+            <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
+                If the button above doesn't work, copy and paste this link into your browser:
+            </p>
+            <div class="url-fallback">{{verificationUrl}}</div>
+
+            <!-- Security Notice -->
+            <div class="security-notice">
+                <h4>Security Notice</h4>
+                <p>This admin account provides elevated privileges within the MediNow system. Please keep your login credentials secure and do not share them with unauthorized personnel. If you did not expect this invitation, please contact the Super Administrator immediately.</p>
+            </div>
+
+            <div class="message">
+                Once verified, you'll have access to:
+                <ul style="color: #4b5563; margin: 15px 0; padding-left: 20px;">
+                    <li>Stock Management</li>
+                    <li>Sales Report</li>
+                    <li>Manage Prescription</li>
+                    <li>Validate Pick-Up Number</li>
+                </ul>
+            </div>
+
+            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+                This verification link will expire in 24 hours for security purposes. If you need assistance, please contact our support team.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                This email was sent by MediNow Super Administrator
+            </p>
+            
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact Support</a>
+            </div>
+            
+            <p class="copyright">
+                © 2024 MediNow. All rights reserved.<br>
+                This is an automated message, please do not reply to this email.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

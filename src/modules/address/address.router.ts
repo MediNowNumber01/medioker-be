@@ -3,45 +3,37 @@ import { autoInjectable } from "tsyringe";
 import { env } from "../../config";
 import { JwtMiddleware } from "../../middleware/jwt.middleware";
 import { verifyRole } from "../../middleware/role.middleware";
-import { fileFilter, uploader } from "../../middleware/uploader.middleware";
-import { StrictValidateBody } from "../../middleware/validation.middleware";
-import { CreatePrescriptionOrderDTO } from "./dto/prescription.dto";
-import { PrescriptionController } from "./prescription.controller";
+import { AddressController } from "./address.controller";
 
 @autoInjectable()
-export class PrescriptionRouter {
+export class AddressRouter {
   private readonly router: Router = Router();
 
   constructor(
     private readonly jwtMiddleware: JwtMiddleware,
-    private readonly prescriptionController: PrescriptionController,
+    private readonly addressController: AddressController,
   ) {
     this.initializeRoutes();
   }
 
   private initializeRoutes = (): void => {
     this.router.get(
-      "/pharmacies",
-      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      verifyRole(["USER"]),
-      this.prescriptionController.getPharmacies,
-    );
-    this.router.get(
-      "/addresses",
-      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      verifyRole(["USER"]),
-      this.prescriptionController.getUserAddresses,
-    );
-
-    this.router.post(
       "/",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["USER"]),
-      // verifyAccount([true]),
-      uploader().fields([{ name: "prescriptions", maxCount: 5 }]),
-      fileFilter,
-      StrictValidateBody(CreatePrescriptionOrderDTO),
-      this.prescriptionController.createPrescriptionOrder,
+      this.addressController.getUserAddress,
+    );
+    this.router.patch(
+      "/set-primary/:addressId",
+      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
+      verifyRole(["USER"]),
+      this.addressController.setPrimary,
+    );
+    this.router.post(
+      "/add-address/",
+      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
+      verifyRole(["USER"]),
+      this.addressController.addAddress,
     );
   };
 

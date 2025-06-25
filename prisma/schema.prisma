@@ -17,9 +17,11 @@ model Account {
   profilePict String?
   provider    Provider?   @default(CREDENTIAL)
   isVerified  Boolean     @default(false)
+  verifyToken String?
   deletedAt   DateTime?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+  
   User        User?
   Admin       Admin?
   SuperAdmin  SuperAdmin?
