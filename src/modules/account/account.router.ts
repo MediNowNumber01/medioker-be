@@ -35,7 +35,7 @@ export class AccountRouter {
     this.router.get(
       "/user",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      // verifyRole(["USER"]),
+      verifyRole(["USER"]),
       this.accountController.getUser,
     );
     this.router.get(
@@ -46,9 +46,9 @@ export class AccountRouter {
     );
     this.router.get(
       "/admins",
-      // this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      // verifyRole(["SUPER_ADMIN"]),
-      this.accountController.getAdmin,
+      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
+      verifyRole(["SUPER_ADMIN"]),
+      this.accountController.getAllUsers,
     );
     this.router.post(
       "/create-admin",

@@ -310,7 +310,7 @@ export class AuthService {
       env().JWT_SECRET,
       { expiresIn: "48h" },
     );
-    console.log(accessToken);
+
 
     return { ...accountWithoutPassword, accessToken };
   };
