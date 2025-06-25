@@ -41,7 +41,7 @@ export class PrescriptionController {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        throw new ApiError("User tidak terautentikasi", 401);
+        throw new ApiError("User not authenticated", 401);
       }
       const result = await this.prescriptionService.getUserAddress(userId);
       res.status(201).send(result);
@@ -58,7 +58,7 @@ export class PrescriptionController {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        throw new ApiError("User tidak terautentikasi", 401);
+        throw new ApiError("User not authenticated", 401);
       }
 
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };

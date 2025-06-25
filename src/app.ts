@@ -10,6 +10,9 @@ import { CategoryRouter } from "./modules/category/category.router";
 import { ProductRouter } from "./modules/product/product.router";
 import { PharmacyRouter } from "./modules/pharmacy/pharmacy.router";
 import { PrescriptionRouter } from "./modules/prescription/prescription.router";
+import { AddressRouter } from "./modules/address/address.router";
+import { GeocodingRouter } from "./modules/geocoding/geocoding.router";
+import { AccountRouter } from "./modules/account/account.router";
 
 export default class App {
   public app;
@@ -31,17 +34,23 @@ export default class App {
     const authRouter = container.resolve(AuthRouter);
     const categoryRouter = container.resolve(CategoryRouter);
     const productRouter = container.resolve(ProductRouter);
-    const pharmacyRouter = container.resolve(PharmacyRouter); 
-    const prescriptionsRouter = container.resolve(PrescriptionRouter)
+    const pharmacyRouter = container.resolve(PharmacyRouter);
+    const prescriptionsRouter = container.resolve(PrescriptionRouter);
+    const addressRouter = container.resolve(AddressRouter);
+    const accountRouter = container.resolve(AccountRouter)
+    const geocodingRouter = container.resolve(GeocodingRouter);
 
     this.app.get("/", (_, res) => {
       res.send("Welcome");
     });
+    this.app.use("/accounts", accountRouter.getRouter());
+    this.app.use("/addresses", addressRouter.getRouter());
     this.app.use("/auth", authRouter.getRouter());
     this.app.use("/categories", categoryRouter.getRouter());
-    this.app.use("/prescriptions", prescriptionsRouter.getRouter())
+    this.app.use("/prescriptions", prescriptionsRouter.getRouter());
     this.app.use("/products", productRouter.getRouter());
     this.app.use("/pharmacies", pharmacyRouter.getRouter());
+    this.app.use("/geocoding", geocodingRouter.getRouter());
   }
 
   private handleError(): void {
