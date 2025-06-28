@@ -35,7 +35,7 @@ export class AuthService {
     }
 
     if (account.provider === "GOOGLE") {
-      throw new ApiError("Please login with your credentials.", 401);
+      throw new ApiError("Please login with your google account.", 401);
     }
 
     const isPasswordValid = await this.passwordService.comparePassword(
@@ -54,10 +54,15 @@ export class AuthService {
         isVerified: account.isVerified,
       },
       env().JWT_SECRET,
+      {expiresIn: "72h"}
     );
 
-    const { password: pw, ...accountWithoutPassword } = account;
-    
+    const {
+      password: pw,
+      verifyToken: vt,
+      ...accountWithoutPassword
+    } = account;
+
     return { ...accountWithoutPassword, accessToken };
   };
 
@@ -230,6 +235,10 @@ export class AuthService {
       throw new ApiError("Invalid credentials", 400);
     }
 
+    if(account.provider === "GOOGLE") {
+      throw new ApiError("Please login with your google account.", 401);
+    }
+
     const token = this.tokenService.generateToken(
       { id: account.id },
       env().JWT_SECRET_FORGOT_PASSWORD!,
@@ -310,7 +319,6 @@ export class AuthService {
       env().JWT_SECRET,
       { expiresIn: "48h" },
     );
-
 
     return { ...accountWithoutPassword, accessToken };
   };

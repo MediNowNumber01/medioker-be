@@ -6,7 +6,7 @@ export const verifyAccount = (roles: boolean[]) => {
     const isVerified = req.user?.isVerified;
 
     if (!isVerified || !roles.includes(isVerified)) {
-      throw new ApiError("Forbidden", 403);
+      throw new ApiError("Please verify your account first", 400);
     }
 
     next();

@@ -10,19 +10,12 @@ export class TokenService {
     return jwt.sign(payload, secretKey, options);
   };
 
-  verifyToken = async (token: string, secretKey: string): Promise<any> => {
+  verifyToken = (token: string, secretKey: string): any => {
     try {
-      return await new Promise((resolve, reject) => {
-        jwt.verify(token, secretKey, (err, decoded) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(decoded);
-          }
-        });
-      });
-    } catch (error) {
-      throw new ApiError(`Invalid or expired token`, 400);
+      return jwt.verify(token, secretKey);
+    } catch (error: any) {
+      console.error("JWT verification error:", error.message); 
+      throw new ApiError("Invalid or expired token", 400);
     }
   };
 }

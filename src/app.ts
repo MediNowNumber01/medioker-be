@@ -43,7 +43,7 @@ export default class App {
     const geocodingRouter = container.resolve(GeocodingRouter);
 
     this.app.get("/", (_, res) => {
-      res.send("Welcome");
+      res.send("Welcome home");
     });
     this.app.use("/accounts", accountRouter.getRouter());
     this.app.use("/addresses", addressRouter.getRouter());

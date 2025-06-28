@@ -1,17 +1,16 @@
+import { Prisma } from "@prisma/client";
 import { injectable } from "tsyringe";
 import { env } from "../../config";
 import { ApiError } from "../../utils/api-error";
+import { PasswordService } from "../auth/password.service";
 import { TokenService } from "../auth/token.service";
 import { CloudinaryService } from "../cloudinary/cloudinary.service";
 import { MailService } from "../mail/mail.service";
 import { PrismaService } from "../prisma/prisma.service";
-import { UpdateAccountDTO } from "./dto/update-account.dto";
-import { PasswordService } from "../auth/password.service";
-import { CreateAdminDTO } from "./dto/create-admin.dto";
-import { UpdateAdminDTO } from "./dto/update-admin.dto";
 import { prismaExclude } from "../prisma/utils";
 import { GetAccountsDTO } from "./dto/get-accounts.dto";
-import { Prisma } from "@prisma/client";
+import { UpdateAccountDTO } from "./dto/update-account.dto";
+import { PaginationService } from "../pagination/pagination.service";
 
 @injectable()
 export class AccountService {
@@ -21,10 +20,11 @@ export class AccountService {
     private readonly fileService: CloudinaryService,
     private readonly mailService: MailService,
     private readonly tokenService: TokenService,
+    private readonly paginationService: PaginationService,
   ) {}
-  getAccount = async (id: string) => {
+  getSuperAdmin = async (authUserId: string) => {
     const account = await this.prisma.account.findUnique({
-      where: { id },
+      where: { id: authUserId },
       select: prismaExclude("Account", ["password"]),
     });
 
@@ -33,7 +33,7 @@ export class AccountService {
     }
 
     return account;
-  }
+  };
 
   getUser = async (authUserId: string) => {
     const account = await this.prisma.account.findUnique({
@@ -49,181 +49,167 @@ export class AccountService {
   };
 
   getAllAccount = async (query: GetAccountsDTO) => {
-    const { page, sortBy, sortOrder, take, search } = query;
+    const { page, sortBy, sortOrder, take, search, isVerified, role, all } =
+      query;
 
-    const whereClause: Prisma.AccountWhereInput = {
+    let whereClause: Prisma.AccountWhereInput = {
       deletedAt: null,
       NOT: { role: "SUPER_ADMIN" },
+      ...(search && {
+        OR: [
+          { fullName: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+        ],
+      }),
+      ...(isVerified !== undefined &&
+        isVerified !== "all" && {
+          isVerified: isVerified === "true",
+        }),
+      ...(role && {
+        role: role,
+      }),
     };
 
-    const accounts = await this.prisma.account.findMany({
+    let orderBy: Prisma.AccountOrderByWithRelationInput = {};
+    if (sortBy === "fullName" || sortBy === "email" || sortBy === "createdAt") {
+      orderBy = {
+        [sortBy]: sortOrder,
+      };
+    } else if (sortBy) {
+      orderBy = {
+        [sortBy]: sortOrder,
+      };
+    } else {
+      orderBy = {
+        createdAt: "desc",
+      };
+    }
+    let paginationArgs: Prisma.AccountFindManyArgs = {};
+    if (!all) {
+      paginationArgs = {
+        skip: (page - 1) * take,
+        take,
+      };
+    }
+
+    const result = await this.prisma.account.findMany({
       where: whereClause,
-      orderBy: { [sortBy]: sortOrder },
-      skip: (page - 1) * take,
-      take,
+      orderBy,
+      ...paginationArgs,
       select: prismaExclude("Account", ["password"]),
     });
 
-    if (!accounts) {
+    if (!result) {
       throw new ApiError("Accounts not found", 400);
     }
 
-    const count = await this.prisma.account.count({ where: whereClause });
-    return { data: accounts, meta: { page, take, total: count } };
+    const countAdmin = await this.prisma.account.count({
+      where: { role: "ADMIN" },
+    });
+    const countVerified = await this.prisma.account.count({
+      where: {
+        isVerified: true,
+        NOT: { role: "SUPER_ADMIN" },
+        deletedAt: null,
+      },
+    });
+    const countUser = await this.prisma.account.count({
+      where: { role: "USER", deletedAt: null },
+    });
+    const count = await this.prisma.account.count({ where: { deletedAt: null, NOT: { role: "SUPER_ADMIN" }} });
+
+    return {
+      data: result,
+      countAdmin,
+      countVerified,
+      countUser,
+      meta: this.paginationService.generateMeta({
+        page,
+        take: all ? count : take,
+        count,
+      }),
+    };
   };
 
-  getAdmin = async (query: GetAccountsDTO) => {
-    const { page, sortBy, sortOrder, take, search } = query;
+  public getUsers = async (query: GetAccountsDTO) => {
+    const { page, sortBy, sortOrder, take, search, isVerified, provider, all } =
+      query;
 
-    const whereClause: Prisma.AccountWhereInput = {
-      deletedAt: null,
-      role: "ADMIN",
+    const whereClause: Prisma.UserWhereInput = {
+      account: {
+        role: "USER",
+        deletedAt: null,
+        ...(search && {
+          OR: [
+            { fullName: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+          ],
+        }),
+        ...(isVerified !== undefined &&
+          isVerified !== "all" && {
+            isVerified: isVerified === "true",
+          }),
+        ...(provider && {
+          provider: provider,
+        }),
+      },
     };
 
-    const accounts = await this.prisma.account.findMany({
-      where: whereClause,
-      orderBy: { [sortBy]: sortOrder },
-      skip: (page - 1) * take,
-      take,
-      select: prismaExclude("Account", ["password"]),
-    });
-
-    if (!accounts) {
-      throw new ApiError("Accounts not found", 400);
+    let orderBy: Prisma.UserOrderByWithRelationInput = {};
+    if (sortBy === "fullName" || sortBy === "email" || sortBy === "createdAt") {
+      orderBy = {
+        account: {
+          [sortBy]: sortOrder,
+        },
+      };
+    } else if (sortBy) {
+      orderBy = {
+        [sortBy]: sortOrder,
+      };
+    } else {
+      orderBy = {
+        account: {
+          createdAt: "desc",
+        },
+      };
     }
 
-    const count = await this.prisma.account.count({ where: whereClause });
-    return { data: accounts, meta: { page, take, total: count } };
-  };
-  getAllUsers = async (query: GetAccountsDTO) => {
-    const { page, sortBy, sortOrder, take, search, isVerified } = query;
+    let paginationArgs: Prisma.UserFindManyArgs = {};
+    if (!all) {
+      paginationArgs = {
+        skip: (page - 1) * take,
+        take,
+      };
+    }
+    const result = await this.prisma.user.findMany({
+      where: whereClause,
+      orderBy,
+      ...paginationArgs,
+      include: { account: { select: prismaExclude("Account", ["password"]) } },
+    });
 
-    const whereClause: Prisma.AccountWhereInput = {
-      deletedAt: null,
-      role: "USER",
+    const count = await this.prisma.user.count({ where: whereClause });
+    const countGoogle = await this.prisma.account.count({
+      where: { role: "USER", provider: "GOOGLE", deletedAt: null },
+    });
+    const countCredential = await this.prisma.account.count({
+      where: { role: "USER", provider: "CREDENTIAL", deletedAt: null },
+    });
+    const countVerified = await this.prisma.account.count({
+      where: { role: "USER", isVerified: true, deletedAt: null },
+    });
+
+    return {
+      data: result,
+      countGoogle,
+      countCredential,
+      countVerified,
+      meta: this.paginationService.generateMeta({
+        page,
+        take: all ? count : take,
+        count,
+      }),
     };
-
-    if (search) {
-      whereClause.OR = [
-        { fullName: { contains: search, mode: "insensitive" } },
-      ];
-    }
-
-    if (isVerified) {
-      whereClause.isVerified;
-    }
-
-    const accounts = await this.prisma.account.findMany({
-      where: whereClause,
-      orderBy: { [sortBy]: sortOrder },
-      skip: (page - 1) * take,
-      take,
-      select: prismaExclude("Account", ["password"]),
-    });
-
-    if (!accounts) {
-      throw new ApiError("Accounts not found", 400);
-    }
-
-    const count = await this.prisma.account.count({ where: whereClause });
-    return { data: accounts, meta: { page, take, total: count } };
-  };
-
-  createAdmin = async (
-    body: CreateAdminDTO,
-    profilePict: Express.Multer.File,
-  ) => {
-    const { email, fullName, password, adminRole } = body;
-
-    const account = await this.prisma.account.findUnique({
-      where: { email },
-    });
-
-    if (account) {
-      throw new ApiError("Email is already exist", 400);
-    }
-
-    const accountId = await this.prisma.account.findUnique({
-      where: { email },
-      select: { id: true },
-    });
-
-    const hashedPassword = await this.passwordService.hashPassword(password);
-
-    const { secure_url } = await this.fileService.upload(profilePict);
-    const profileUrl = secure_url;
-
-    if (adminRole === "DOCTOR" || adminRole === "PHARMACIST") {
-      return await this.prisma.$transaction(async (tx) => {
-        const token = this.tokenService.generateToken(
-          { id: accountId },
-          env().JWT_SECRET_VERIFY!,
-          { expiresIn: "1h" },
-        );
-        const verifyLink = `${env().BASE_URL_FE}/verify/${token}`;
-
-        this.mailService.sendEmail(email, "Verify Account", "admin-verify", {
-          fullName,
-          email,
-          adminRole,
-          verificationUrl: verifyLink,
-        });
-        const newAdmin = await tx.account.create({
-          data: {
-            email,
-            fullName,
-            password: hashedPassword,
-            profilePict: profileUrl,
-            role: "ADMIN",
-            verifyToken: token,
-          },
-          select: prismaExclude("Account", ["password"]),
-        });
-
-        await tx.admin.create({
-          data: { adminRole, accountId: newAdmin.id, validToAnswerForum: true },
-        });
-
-        return newAdmin;
-      });
-    } else if (adminRole === "CASHIER") {
-      return await this.prisma.$transaction(async (tx) => {
-        const token = this.tokenService.generateToken(
-          { id: accountId },
-          env().JWT_SECRET_VERIFY!,
-          { expiresIn: "1h" },
-        );
-        const verifyLink = `${env().BASE_URL_FE}/verify/${token}`;
-
-        this.mailService.sendEmail(email, "Verify Account", "admin-verify", {
-          fullName,
-          email,
-          adminRole,
-          verificationUrl: verifyLink,
-        });
-        const newAdmin = await tx.account.create({
-          data: {
-            email,
-            fullName,
-            password: hashedPassword,
-            profilePict: profileUrl,
-            role: "ADMIN",
-            verifyToken: token,
-          },
-          select: prismaExclude("Account", ["password"]),
-        });
-
-        await tx.admin.create({
-          data: {
-            adminRole,
-            accountId: newAdmin.id,
-            validToAnswerForum: false,
-          },
-        });
-
-        return newAdmin;
-      });
-    }
   };
 
   deleteProfilePict = async (authUserId: string) => {
@@ -338,139 +324,6 @@ export class AccountService {
     );
 
     return { result, newAccessToken };
-  };
-
-  deleteAdmin = async (accountId: string) => {
-    const account = await this.prisma.account.findUnique({
-      where: { id: accountId },
-    });
-
-    if (!account) {
-      throw new ApiError("Account not found", 400);
-    }
-
-    if (account.deletedAt !== null) {
-      throw new ApiError(`Blog has been deleted at ${account.deletedAt}`, 404);
-    }
-
-    await this.fileService.remove(account.profilePict!);
-
-    await this.prisma.account.update({
-      where: { id: accountId },
-      data: { deletedAt: new Date(), profilePict: "" },
-    });
-
-    return { message: "Delete admin success" };
-  };
-
-  updateAdmin = async (
-    accountId: string,
-    body: UpdateAdminDTO,
-    profilePict?: Express.Multer.File,
-  ) => {
-    const { adminRole, email, fullName, password } = body;
-    const account = await this.prisma.account.findUnique({
-      where: { id: accountId },
-      include: { Admin: true },
-    });
-
-    if (!account) {
-      throw new ApiError("Account not found", 400);
-    }
-    let newFullName = account.fullName;
-    if (fullName) {
-      newFullName = fullName;
-    }
-
-    let hashedPassword = account.password;
-    if (password) {
-      hashedPassword = await this.passwordService.hashPassword(password);
-    }
-
-    let profileUrl = account.profilePict;
-    if (profilePict) {
-      const { secure_url } = await this.fileService.upload(profilePict);
-      profileUrl = secure_url;
-    }
-    let newAdminRole = account.Admin?.adminRole;
-    if (adminRole) {
-      newAdminRole = adminRole;
-    }
-
-    let result;
-    if (email) {
-      const uniqueEmail = await this.prisma.account.findUnique({
-        where: { email },
-      });
-
-      if (uniqueEmail) {
-        throw new ApiError("Email has been used", 409);
-      }
-      result = await this.prisma.$transaction(async (tx) => {
-        const token = this.tokenService.generateToken(
-          { id: account.id },
-          env().JWT_SECRET_VERIFY!,
-          { expiresIn: "1h" },
-        );
-        const verifyLink = `${env().BASE_URL_FE}/verify/${token}`;
-
-        this.mailService.sendEmail(email, "Verify Account", "admin-verify", {
-          fullName,
-          email,
-          verificationUrl: verifyLink,
-          adminRole,
-        });
-
-        if (adminRole === "CASHIER") {
-          await tx.admin.update({
-            where: { accountId: account.id },
-            data: { validToAnswerForum: false },
-          });
-        } else {
-          await tx.admin.update({
-            where: { accountId: account.id },
-            data: { validToAnswerForum: true },
-          });
-        }
-
-        return await tx.account.update({
-          where: { id: account.id },
-          data: {
-            fullName: newFullName,
-            password: hashedPassword,
-            profilePict: profileUrl,
-            isVerified: false,
-            verifyToken: token,
-          },
-          select: prismaExclude("Account", ["password"]),
-        });
-      });
-    } else if (!email) {
-      result = await this.prisma.$transaction(async (tx) => {
-        if (adminRole === "CASHIER") {
-          await tx.admin.update({
-            where: { accountId: account.id },
-            data: { validToAnswerForum: false },
-          });
-        } else {
-          await tx.admin.update({
-            where: { accountId: account.id },
-            data: { validToAnswerForum: true },
-          });
-        }
-
-        return await tx.account.update({
-          where: { id: account.id },
-          data: {
-            fullName: newFullName,
-            password: hashedPassword,
-            profilePict: profileUrl,
-          },
-          select: prismaExclude("Account", ["password"]),
-        });
-      });
-    }
-    return result;
   };
 
   deleteUser = async (accountId: string) => {

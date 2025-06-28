@@ -7,6 +7,7 @@ import { fileFilter, uploader } from "../../middleware/uploader.middleware";
 import { StrictValidateBody } from "../../middleware/validation.middleware";
 import { CreatePrescriptionOrderDTO } from "./dto/prescription.dto";
 import { PrescriptionController } from "./prescription.controller";
+import { verifyAccount } from "../../middleware/account.middleware";
 
 @autoInjectable()
 export class PrescriptionRouter {
@@ -30,7 +31,7 @@ export class PrescriptionRouter {
       "/",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["USER"]),
-      // verifyAccount([true]),
+      verifyAccount([true]),
       uploader().fields([{ name: "prescriptions", maxCount: 5 }]),
       fileFilter,
       StrictValidateBody(CreatePrescriptionOrderDTO),
