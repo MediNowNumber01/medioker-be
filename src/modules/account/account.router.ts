@@ -1,12 +1,10 @@
 import { Router } from "express";
 import { autoInjectable } from "tsyringe";
-import { accountController } from "./account.controller";
-import { JwtMiddleware } from "../../middleware/jwt.middleware";
 import { env } from "../../config";
+import { JwtMiddleware } from "../../middleware/jwt.middleware";
 import { verifyRole } from "../../middleware/role.middleware";
 import { fileFilter, uploader } from "../../middleware/uploader.middleware";
-import { validateBody } from "../../middleware/validation.middleware";
-import { CreateAdminDTO } from "./dto/create-admin.dto";
+import { accountController } from "./account.controller";
 
 @autoInjectable()
 export class AccountRouter {
@@ -27,12 +25,6 @@ export class AccountRouter {
       this.accountController.getAllAccount,
     );
     this.router.get(
-      "/:id",
-      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      verifyRole(["SUPER_ADMIN"]),
-      this.accountController.getAccount,
-    );
-    this.router.get(
       "/user",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["USER"]),
@@ -42,56 +34,34 @@ export class AccountRouter {
       "/users",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
-      this.accountController.getAllUsers,
+      this.accountController.getUsers,
     );
+
     this.router.get(
-      "/admins",
+      "/:id",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
-      this.accountController.getAllUsers,
-    );
-    this.router.post(
-      "/create-admin",
-      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      uploader().fields([{ name: "profilePict", maxCount: 1 }]),
-      fileFilter,
-      verifyRole(["SUPER_ADMIN"]),
-      validateBody(CreateAdminDTO),
-      this.accountController.createAdmin,
-    );
-    this.router.delete(
-      "/delete-admin/:accountId",
-      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      verifyRole(["SUPER_ADMIN"]),
-      this.accountController.deleteAdmin,
-    );
-    this.router.delete(
-      "/delete-user/:accountId",
-      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      verifyRole(["SUPER_ADMIN"]),
-      this.accountController.deleteUser,
-    );
-    this.router.delete(
-      "/delete-pic",
-      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      verifyRole(["USER"]),
-      this.accountController.deleteProfilePict,
+      this.accountController.getSuperAdmin,
     );
     this.router.patch(
-      "/update-account",
+      "/",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       uploader().fields([{ name: "profilePict", maxCount: 1 }]),
       fileFilter,
       verifyRole(["USER"]),
       this.accountController.updateAccount,
     );
-    this.router.patch(
-      "/admins/:id",
+    this.router.delete(
+      "/profilepict",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
-      uploader().fields([{ name: "profilePict", maxCount: 1 }]),
-      fileFilter,
+      verifyRole(["USER"]),
+      this.accountController.deleteProfilePict,
+    );
+    this.router.delete(
+      "/:accountId",
+      this.jwtMiddleware.verifyToken(env().JWT_SECRET),
       verifyRole(["SUPER_ADMIN"]),
-      this.accountController.updateAdmin,
+      this.accountController.deleteUser,
     );
   };
 

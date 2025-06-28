@@ -56,7 +56,7 @@ export class MailService {
       const html = await this.renderTemplate(templateName, context);
 
       const mailOptions = {
-        from: `"Your App" <${env().MAIL_USER}>`,
+        from: `"Medinow - Your Trusted Pharmacy" <${env().MAIL_USER}>`,
         to,
         subject,
         html,

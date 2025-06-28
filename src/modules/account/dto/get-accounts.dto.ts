@@ -1,6 +1,7 @@
 import { IsBoolean, IsOptional, IsString } from "class-validator";
 import { PaginationQueryParams } from "../../pagination/dto/pagination.dto";
 import { Transform } from "class-transformer";
+import { Provider, Role } from "@prisma/client";
 
 export class GetAccountsDTO extends PaginationQueryParams {
   @IsOptional()
@@ -15,4 +16,9 @@ export class GetAccountsDTO extends PaginationQueryParams {
   })
   @IsBoolean()
   isVerified?: string;
+
+  @IsOptional()
+  provider?: Provider;
+  @IsOptional()
+  role?: Role;
 }
