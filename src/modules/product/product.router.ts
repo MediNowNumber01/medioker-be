@@ -23,7 +23,8 @@ export class ProductRouter {
     this.initializeRoutes();
 
     // ================create================
-
+    
+    this.router.get("/", this.productController.getProducts);
     this.router.post(
       "/publish/:id",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
@@ -62,7 +63,6 @@ export class ProductRouter {
       this.productController.createUnitProduct,
     );
     // ================read================
-    this.router.get("/", this.productController.getProducts);
     this.router.get(
       "/dashboard",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),

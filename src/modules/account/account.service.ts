@@ -116,7 +116,7 @@ export class AccountService {
     const countUser = await this.prisma.account.count({
       where: { role: "USER", deletedAt: null },
     });
-    const count = await this.prisma.account.count({ where: { deletedAt: null, NOT: { role: "SUPER_ADMIN" }} });
+    const count = await this.prisma.account.count({ where: whereClause });
 
     return {
       data: result,
@@ -264,7 +264,7 @@ export class AccountService {
     }
 
     let result;
-    if (email && email === account.email) {
+    if (email && email !== account.email) {
       const uniqueEmail = await this.prisma.account.findUnique({
         where: { email },
       });
@@ -293,6 +293,7 @@ export class AccountService {
             fullName: newFullName,
             password: hashedPassword,
             profilePict: profileUrl,
+            email,
             isVerified: false,
             verifyToken: token,
           },

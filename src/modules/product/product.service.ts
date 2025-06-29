@@ -13,12 +13,11 @@ import { PaginationService } from "../pagination/pagination.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateProductInfoDTO } from "./dto/create-product-info.dto";
 import { CreateUnitProductDTO } from "./dto/create-unit-product.dto";
+import { GetProductsDTO } from "./dto/get-products.dto";
 import { ProductImageDTO } from "./dto/product-image.dto";
 import { UpdateProductInfoDTO } from "./dto/update-product-info.dto";
-import { verifyExistingNameDTO } from "./dto/verify-name-dto";
-import { GetProductsDTO } from "./dto/get-products.dto";
 import { UpdateUnitProductDTO } from "./dto/update-unit-product.dto";
-import e from "cors";
+import { verifyExistingNameDTO } from "./dto/verify-name-dto";
 
 @injectable()
 export class ProductService {
@@ -68,30 +67,6 @@ export class ProductService {
         );
       }
       throw new ApiError("Product with this name already exists", 400);
-    }
-    return true;
-  }
-
-  private async validateCategory(tx: Prisma.TransactionClient, id: string[]) {
-    if (id.length === 0) {
-      throw new ApiError("At least one category is required", 400);
-    }
-    if (id.length > 5) {
-      throw new ApiError("A product can have a maximum of 5 categories", 400);
-    }
-    if (id.length === 0) {
-      throw new ApiError("At least one category is required", 400);
-    }
-    if (id.length > 5) {
-      throw new ApiError("A product can have a maximum of 5 categories", 400);
-    }
-    const existingCategories = await tx.category.findMany({
-      where: {
-        id: { in: id },
-      },
-    });
-    if (existingCategories.length === 0) {
-      throw new ApiError("One or more categories do not exist", 400);
     }
     return true;
   }
@@ -190,7 +165,6 @@ export class ProductService {
     return true;
   };
 
-  // core service methods
   public publishProduct = async (id: string) => {
     const data = await this.prisma.$transaction(async (tx) => {
       const existingProduct = await this.validateProductId(tx, id);
@@ -220,7 +194,7 @@ export class ProductService {
           data: existingPharmacy.map((pharmacy) => ({
             productId: id,
             pharmacyId: pharmacy.id,
-            quantity: 0, // Initialize with zero quantity
+            quantity: 0,
           })),
         });
       }
@@ -294,137 +268,175 @@ export class ProductService {
     };
   };
 
+  private async validateCategory(tx: any, categoryIds: string[]) {
+    const categories = await tx.category.findMany({
+      where: {
+        id: { in: categoryIds },
+      },
+      select: { id: true },
+    });
+    if (categories.length !== categoryIds.length) {
+      throw new ApiError("One or more categories not found", 404);
+    }
+  }
+
   public getProducts = async (query: GetProductsDTO) => {
-    const result = await this.prisma.$transaction(async (tx) => {
-      const { search, categoryId, pharmacyId, ...pagination } = query;
-      const where: Prisma.ProductWhereInput = {
-        deletedAt: null,
-        published: true,
-        // needsPrescription: false,
+    const {
+      all,
+      page,
+      take,
+      sortBy,
+      sortOrder,
+      search,
+      categoryId,
+      acquisition,
+      golongan,
+      pharmacyId,
+    } = query;
+
+    let where: Prisma.ProductWhereInput = {
+      deletedAt: null,
+      published: true,
+    };
+
+    if (search) {
+      where.name = {
+        contains: search,
+        mode: "insensitive",
       };
-      if (search) {
-        where.name = {
-          contains: search,
-          mode: "insensitive",
-        };
+    }
+
+    if (categoryId && categoryId.length > 0) {
+      where.ProductCategory = {
+        some: {
+          categoryId: { in: categoryId },
+        },
+      };
+    }
+
+    if (golongan) {
+      where.golongan = golongan;
+    }
+
+    if (acquisition) {
+      where.acquisition = acquisition;
+    }
+
+    let selectedPharmacy: Pharmacy | null = null;
+    if (pharmacyId) {
+      const existingPharmacy = await this.prisma.pharmacy.findUnique({
+        where: { id: pharmacyId, isOpen: true, deletedAt: null },
+      });
+      if (!existingPharmacy) {
+        throw new ApiError("Selected pharmacy not found or not open", 404);
       }
-      if (categoryId && categoryId.length > 0) {
-        await this.validateCategory(tx, categoryId);
-        where.ProductCategory = {
-          some: {
-            categoryId: { in: categoryId },
-          },
-        };
-      }
-      if (query.golongan) {
-        where.golongan = query.golongan as Golongan;
-      }
-      if (query.acquisition && query.acquisition.length > 0) {
-        where.acquisition = query.acquisition as Acquisition;
-      }
-      let selectedPharmacy: Pharmacy | null = null;
-      if (pharmacyId) {
-        const existingPharmacy = await tx.pharmacy.findUnique({
-          where: { id: pharmacyId, isOpen: true, deletedAt: null },
+      selectedPharmacy = existingPharmacy;
+    } else {
+      const mainPharmacy = await this.prisma.pharmacy.findFirst({
+        where: { isMain: true, isOpen: true, deletedAt: null },
+      });
+      if (mainPharmacy) {
+        selectedPharmacy = mainPharmacy;
+      } else {
+        const excitingOpenPharmacy = await this.prisma.pharmacy.findFirst({
+          where: { isOpen: true, deletedAt: null },
         });
-        if (!existingPharmacy) {
-          selectedPharmacy = null;
+        if (excitingOpenPharmacy) {
+          selectedPharmacy = excitingOpenPharmacy;
         } else {
-          selectedPharmacy = existingPharmacy;
-          where.Stock = {
-            some: {
-              pharmacyId: existingPharmacy.id,
-            },
-          };
+          throw new ApiError("No open pharmacies found", 404);
         }
       }
-      if (!selectedPharmacy) {
-        const mainPharmacy = await tx.pharmacy.findFirst({
-          where: { isMain: true, isOpen: true, deletedAt: null },
-        });
-        if (mainPharmacy) {
-          selectedPharmacy = mainPharmacy;
-          where.Stock = {
-            some: {
-              pharmacyId: mainPharmacy.id,
-            },
-          };
-        } else {
-          const excitingOpenPharmacy = await tx.pharmacy.findFirst({
-            where: { isOpen: true, deletedAt: null },
-          });
-          if (excitingOpenPharmacy) {
-            selectedPharmacy = excitingOpenPharmacy;
-            where.Stock = {
-              some: {
-                pharmacyId: excitingOpenPharmacy.id,
-              },
-            };
-          } else {
-            throw new ApiError("No open pharmacies found", 404);
-          }
-        }
-      }
-      let paginationArgs: Prisma.ProductFindManyArgs = {};
-      if (!pagination.all) {
-        paginationArgs = {
-          skip: (pagination.page - 1) * pagination.take,
-          take: pagination.take,
-        };
-      }
+    }
+
+    if (selectedPharmacy) {
+      where.Stock = {
+        some: {
+          pharmacyId: selectedPharmacy.id,
+        },
+      };
+    } else {
+      throw new ApiError("No active pharmacy to fetch products from", 404);
+    }
+
+    let orderBy: Prisma.ProductOrderByWithRelationInput = {};
+    if (sortBy) {
       if (
-        pagination.sortBy &&
-        ["name", "createdAt", "updatedAt"].includes(pagination.sortBy)
+        sortBy === "name" ||
+        sortBy === "createdAt" ||
+        sortBy === "updatedAt"
       ) {
-        paginationArgs.orderBy = {
-          [pagination.sortBy]: pagination.sortOrder,
+        orderBy = {
+          [sortBy]: sortOrder,
+        };
+      } else if (sortBy === "price") {
+        orderBy = {
+          UnitProduct: {
+            _count: sortOrder,
+          },
         };
       }
-      const data = await tx.product.findMany({
-        where,
-        include: {
-          UnitProduct: {
-            select: {
-              id: true,
-              price: true,
-              name: true,
-            },
+    } else {
+      orderBy = {
+        createdAt: "desc",
+      };
+    }
+
+    let paginationArgs: Prisma.ProductFindManyArgs = {};
+    if (!all) {
+      paginationArgs = {
+        skip: (page - 1) * take,
+        take: take,
+      };
+    }
+
+    const data = await this.prisma.product.findMany({
+      where,
+      orderBy,
+      include: {
+        UnitProduct: {
+          select: {
+            id: true,
+            price: true,
+            name: true,
+            isMain: true,
           },
-          ProductImage: {
-            where: { isThumbnail: true },
-            take: 1,
+        },
+        ProductImage: {
+          where: { isThumbnail: true },
+          take: 1,
+        },
+        Stock: {
+          where: { pharmacyId: selectedPharmacy.id },
+          select: {
+            quantity: true,
           },
-          Stock: {
-            where: { pharmacyId: selectedPharmacy.id },
-            select: {
-              quantity: true,
-            },
-          },
-          ProductCategory: {
-            select: {
-              category: {
-                select: {
-                  id: true,
-                },
+        },
+        ProductCategory: {
+          select: {
+            category: {
+              select: {
+                id: true,
+                name: true,
               },
             },
           },
         },
-        ...paginationArgs,
-      });
-      const count = await tx.product.count({ where });
-
-      return {
-        data,
-        pharmacy: selectedPharmacy,
-        meta: this.paginationService.generateMeta({
-          page: pagination.page,
-          take: pagination.all ? count : pagination.take,
-          count,
-        }),
-      };
+      },
+      ...paginationArgs,
     });
-    return result;
+
+    const count = await this.prisma.product.count({ where });
+
+    return {
+      data,
+      pharmacy: selectedPharmacy,
+      meta: this.paginationService.generateMeta({
+        page: page,
+        take: all ? count : take,
+        count,
+      }),
+    };
   };
 
   public getAdminProducts = async (query: GetProductsDTO) => {
@@ -578,7 +590,6 @@ export class ProductService {
     };
   };
 
-  // product info methods
   public createProductInfo = async (body: CreateProductInfoDTO) => {
     const data = await this.prisma.$transaction(async (tx) => {
       await this.validateProductName(tx, body.name);
@@ -683,7 +694,6 @@ export class ProductService {
     };
   };
 
-  // product image methods
   public uploadProductImage = async (
     id: string,
     image: Express.Multer.File,
@@ -792,7 +802,7 @@ export class ProductService {
       data,
     };
   };
-  // unit product methods
+
   public createUnitProduct = async (id: string, body: CreateUnitProductDTO) => {
     const data = await this.prisma.$transaction(async (tx) => {
       const excitingProduct = await this.validateProductId(tx, id);

@@ -175,7 +175,7 @@ export class PrescriptionService {
 
     return {
       message:
-        "Pesanan resep berhasil dibuat dan sedang menunggu konfirmasi apotek.",
+        "Order successfully created. Please check your order page",
       data: order,
     };
   }
