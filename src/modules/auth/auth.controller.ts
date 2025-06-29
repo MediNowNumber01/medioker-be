@@ -74,7 +74,7 @@ export class AuthController {
 
   googleLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { token } = req.body; // Ambil token dari body
+      const { token } = req.body;
       if (!token) throw new Error("Token tidak valid");
 
       const result = await this.authService.googleLogin(token);

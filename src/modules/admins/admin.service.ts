@@ -224,7 +224,7 @@ export class AdminService {
       );
     }
 
-    // await this.fileService.remove(account.profilePict!);
+    await this.fileService.remove(account.profilePict!);
     await this.prisma.$transaction(async (tx) => {
       await tx.admin.update({
         where: { accountId },

@@ -15,8 +15,6 @@ import { UpdateUnitProductDTO } from "./dto/update-unit-product.dto";
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  // core controller methods
-
   public publishProduct = async (
     req: Request,
     res: Response,
@@ -111,7 +109,6 @@ export class ProductController {
     }
   };
 
-  // product info methods
   public createProductInfo = async (
     req: Request,
     res: Response,
@@ -158,7 +155,6 @@ export class ProductController {
     }
   };
 
-  // product image methods
   public uploadProductImage = async (
     req: Request,
     res: Response,
@@ -220,7 +216,6 @@ export class ProductController {
     }
   };
 
-  // unit product methods
   public createUnitProduct = async (
     req: Request,
     res: Response,

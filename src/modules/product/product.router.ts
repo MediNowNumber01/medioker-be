@@ -22,8 +22,6 @@ export class ProductRouter {
   ) {
     this.initializeRoutes();
 
-    // ================create================
-    
     this.router.get("/", this.productController.getProducts);
     this.router.post(
       "/publish/:id",
@@ -62,7 +60,6 @@ export class ProductRouter {
       StrictValidateBody(CreateUnitProductDTO),
       this.productController.createUnitProduct,
     );
-    // ================read================
     this.router.get(
       "/dashboard",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
@@ -77,7 +74,6 @@ export class ProductRouter {
     );
 
     this.router.get("/:slug", this.productController.getProductDetails);
-    // ================update================
     this.router.patch(
       "/unit/:id",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET),
