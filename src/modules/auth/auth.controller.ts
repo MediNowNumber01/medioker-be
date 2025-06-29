@@ -91,9 +91,7 @@ export class AuthController {
   ) => {
     try {
       const { token } = req.params;
-       if (!token || token.split(".").length !== 3) {
-      return res.status(400).json({ message: "Malformed or invalid token" });
-    }
+
       this.tokenService.verifyToken(token, env().JWT_SECRET_FORGOT_PASSWORD!);
 
       res.status(200).send({ message: "Token is valid" });
