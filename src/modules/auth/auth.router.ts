@@ -22,11 +22,8 @@ export class AuthRouter {
   }
 
   private initializeRoutes = (): void => {
-    this.router.get(
-      "/verify-reset-token/:token",
-      this.authController.verifyResetToken, 
-    );
-    this.router.get(
+    this.router.get("/verify-reset-token/:token", this.authController.verifyResetToken);
+    this.router.post(
       "/verify-account-token/:token",
       this.authController.verifyAccountToken, 
     );
