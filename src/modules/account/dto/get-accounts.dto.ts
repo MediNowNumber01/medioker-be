@@ -19,6 +19,7 @@ export class GetAccountsDTO extends PaginationQueryParams {
 
   @IsOptional()
   provider?: Provider;
+  
   @IsOptional()
   role?: Role;
 }

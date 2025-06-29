@@ -24,7 +24,7 @@ export class AdminService {
     private readonly mailService: MailService,
   ) {}
   public getAdmins = async (query: GetAdminsDTO) => {
-    const { search, page, take, sortBy, sortOrder, all } = query;
+    const { search, page, take, sortBy, sortOrder, all, isVerified } = query;
 
     let where: Prisma.AdminWhereInput = {
       account: {
@@ -36,6 +36,10 @@ export class AdminService {
             { email: { contains: search, mode: "insensitive" } },
           ],
         }),
+        ...(isVerified !== undefined &&
+          isVerified !== "all" && {
+            isVerified: isVerified === "true",
+          }),
       },
     };
 

@@ -25,4 +25,8 @@ export class GetAdminsDTO extends PaginationQueryParams {
   @IsString()
   @Transform(({ value }) => value.trim())
   notOnPharmacy?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isVerified?: string;
 }

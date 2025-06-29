@@ -91,9 +91,7 @@ export class AuthController {
   ) => {
     try {
       const { token } = req.params;
-       if (!token || token.split(".").length !== 3) {
-      return res.status(400).json({ message: "Malformed or invalid token" });
-    }
+
       this.tokenService.verifyToken(token, env().JWT_SECRET_FORGOT_PASSWORD!);
 
       res.status(200).send({ message: "Token is valid" });
@@ -104,12 +102,12 @@ export class AuthController {
 
   resendVerify = async (req: Request, res: Response, next: NextFunction) => {
     try {
-     const accountId = req.user?.id;
+      const accountId = req.user?.id;
 
       if (!accountId) {
         throw new ApiError("Account ID not found in token", 400);
       }
-      const result= this.authService.resendVerification(accountId);
+      const result = this.authService.resendVerification(accountId);
 
       res.status(200).send(result);
     } catch (error) {
