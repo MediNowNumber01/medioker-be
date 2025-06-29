@@ -22,10 +22,13 @@ export class AuthRouter {
   }
 
   private initializeRoutes = (): void => {
-    this.router.get("/verify-reset-token/:token", this.authController.verifyResetToken);
-    this.router.post(
+    this.router.get(
+      "/verify-reset-token/:token",
+      this.authController.verifyResetToken, 
+    );
+    this.router.get(
       "/verify-account-token/:token",
-      this.authController.verifyAccountToken,
+      this.authController.verifyAccountToken, 
     );
     this.router.post(
       "/resend-verification",
@@ -52,11 +55,13 @@ export class AuthRouter {
     );
     this.router.post("/google-login", this.authController.googleLogin);
     this.router.patch(
-      "/reset-password/:token",
+      "/reset-password",
       this.jwtMiddleware.verifyToken(env().JWT_SECRET_FORGOT_PASSWORD!),
       validateBody(ResetPasswordDTO),
       this.authController.resetPassword,
     );
+    
+    
   };
 
   getRouter(): Router {
