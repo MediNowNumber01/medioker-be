@@ -123,11 +123,6 @@ export class AdminService {
       throw new ApiError("Email is already exist", 409);
     }
 
-    const accountId = await this.prisma.account.findUnique({
-      where: { email },
-      select: { id: true },
-    });
-
     const hashedPassword = await this.passwordService.hashPassword(password);
 
     const { secure_url } = await this.fileService.upload(profilePict);
@@ -135,7 +130,7 @@ export class AdminService {
 
     if (adminRole === "DOCTOR" || adminRole === "PHARMACIST") {
       return await this.prisma.$transaction(async (tx) => {
-        const newAdmin = await tx.account.create({
+        let newAdmin = await tx.account.create({
           data: {
             email,
             fullName,
@@ -147,7 +142,7 @@ export class AdminService {
         });
 
         const token = this.tokenService.generateToken(
-          { id: accountId },
+          { id: newAdmin.id },
           env().JWT_SECRET_VERIFY!,
           { expiresIn: "1h" },
         );
@@ -173,7 +168,7 @@ export class AdminService {
       });
     } else if (adminRole === "CASHIER") {
       return await this.prisma.$transaction(async (tx) => {
-        const newAdmin = await tx.account.create({
+        let newAdmin = await tx.account.create({
           data: {
             email,
             fullName,
@@ -184,7 +179,7 @@ export class AdminService {
           select: prismaExclude("Account", ["password"]),
         });
         const token = this.tokenService.generateToken(
-          { id: accountId },
+          { id: newAdmin.id },
           env().JWT_SECRET_VERIFY!,
           { expiresIn: "1h" },
         );

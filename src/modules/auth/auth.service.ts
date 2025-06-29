@@ -77,6 +77,9 @@ export class AuthService {
       throw new ApiError("Invalid or expired token", 400);
     }
 
+    console.log(decoded);
+    
+
     const { id: accountId } = decoded;
 
     const account = await this.prisma.account.findUnique({
