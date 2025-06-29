@@ -7,7 +7,7 @@ export const ProductImagesSeed = async (prisma: PrismaClient) => {
     await Promise.all(
       Array.from({ length: endNumber - startNumber + 1 }, (_, idx) => {
         const i = startNumber + idx;
-        // First image (thumbnail)
+
         const createFirstImage = tx.productImage.create({
           data: {
             isThumbnail: true,
@@ -16,7 +16,7 @@ export const ProductImagesSeed = async (prisma: PrismaClient) => {
             productId: `${i}`,
           },
         });
-        // Second image (not thumbnail)
+
         const createSecondImage = tx.productImage.create({
           data: {
             isThumbnail: false,

@@ -18,7 +18,6 @@ export class GeocodingService {
           limit: 1,
         },
         headers: {
-          // Penting untuk menyertakan User-Agent
           "User-Agent": "MediNowApp/1.0 (contact@medinow.com)"
         }
       });

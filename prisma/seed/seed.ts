@@ -20,13 +20,11 @@ async function main() {
   console.log("Seeding finished.");
 }
 
-// Execute the main function and handle errors
 main()
   .catch((e) => {
     console.error(e);
     process.exit(1);
   })
   .finally(async () => {
-    // Ensure the Prisma Client disconnects
     await prisma.$disconnect();
   });
